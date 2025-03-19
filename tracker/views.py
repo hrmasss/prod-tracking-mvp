@@ -21,7 +21,6 @@ def scan_qr_data(request):
         data = json.loads(request.body.decode("utf-8"))
         qr_data = data.get("qr_data")
         scanner_name = data.get("scanner_name")
-        print(f"Scanner {scanner_name} scanned QR code {qr_data}")
 
         try:
             scanner = Scanner.objects.get(name=scanner_name)
@@ -39,21 +38,32 @@ def scan_qr_data(request):
         try:
             # Try to find a MaterialPiece
             material_piece = MaterialPiece.objects.get(qr_code=qr_data)
-            print(
-                f"Material Piece {material_piece.name} scanned at {production_line.name}"
-            )
         except MaterialPiece.DoesNotExist:
             pass
 
         try:
             # Try to find a Bundle
             bundle = Bundle.objects.get(qr_code=qr_data)
-            print(f"Bundle {bundle.pk} scanned at {production_line.name}")
         except Bundle.DoesNotExist:
             pass
 
         if not material_piece and not bundle:
             return HttpResponse("Invalid QR code", status=400)
+
+        # Check if a scan event already exists for this scanner and QR code
+        if material_piece:
+            existing_scan = ScanEvent.objects.filter(
+                scanner=scanner, material_piece=material_piece
+            ).exists()
+        elif bundle:
+            existing_scan = ScanEvent.objects.filter(
+                scanner=scanner, bundle=bundle
+            ).exists()
+        else:
+            existing_scan = False
+
+        if existing_scan:
+            return HttpResponse("Scan already registered", status=200)
 
         # Create the ScanEvent
         ScanEvent.objects.create(
