@@ -171,9 +171,7 @@ class ProductionTargetAdmin(BaseModelAdmin):
 
 @admin.register(Style)
 class StyleAdmin(BaseModelAdmin):
-    list_display = ("buyer", "season", "style_name", "created_at", "updated_at")
-    list_filter = ("buyer", "season")
-    filter_horizontal = ("sizes",)
+    list_display = ("style_name", "created_at", "updated_at")
     inlines = [MaterialInline, OrderInline]
 
 

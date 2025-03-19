@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "common",
     "users",
     "tracker",
+    "seeder",
 ]
 
 # --- MIDDLEWARE ---

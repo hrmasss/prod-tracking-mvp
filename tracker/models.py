@@ -38,9 +38,6 @@ class Style(BaseModel):
     def __str__(self):
         return f"{self.buyer} - {self.season} - {self.style_name}"
 
-    class Meta:
-        unique_together = ("buyer", "season", "style_name")
-
 
 class Order(BaseModel):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="orders")
