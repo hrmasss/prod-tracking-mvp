@@ -2,6 +2,7 @@ import os
 import qrcode
 import hashlib
 from io import BytesIO
+from django.utils.html import format_html
 from django.core.files.base import ContentFile
 
 
@@ -10,7 +11,7 @@ from django.core.files.base import ContentFile
 
 def material_qr_image_upload_path(instance, filename):
     # Generate path structure: buyer/season/style/
-    style = instance.style
+    style = instance.material.style
     buyer = style.buyer.name.replace(" ", "_")
     season = style.season.name.replace(" ", "_")
     style_number = style.style_number.replace(" ", "_")
@@ -20,15 +21,10 @@ def material_qr_image_upload_path(instance, filename):
     return os.path.join(path, filename)
 
 
-def bundle_qr_image_upload_path(instance, filename):
-    # For bundles, we'll use a bundles directory
-    return f"qr_codes/bundles/{filename}"
-
-
 def generate_numeric_code_for_qr(instance_id, prefix):
     """
     Generate a unique 8-digit numeric code
-    - prefix: 1 for material pieces, 2 for bundles
+    - prefix: 1 for material pieces
     - remaining digits: padded instance_id or hashed value if too large
     """
     # Convert instance_id to string
@@ -90,38 +86,47 @@ def generate_material_qr_code(instance):
     return False
 
 
-def generate_bundle_qr_code(instance):
-    """Generate QR code for a bundle instance with 8-digit numeric code"""
-    if instance:
-        # Generate the 8-digit numeric code (2 + 7 digits)
-        numeric_code = generate_numeric_code_for_qr(instance.id, prefix="2")
-        instance.qr_code = numeric_code
+# --- ADMIN UTILITIES ---
 
-        # Generate the QR image
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(numeric_code)
-        qr.make(fit=True)
 
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
+def render_qr_code(obj):
+    if obj.qr_image:
+        filename = "material_piece"
+        if hasattr(obj, "style"):
+            filename = f"{obj.style.buyer.name}_{obj.style.season.name}_{obj.style.style_number}_{obj.name}".replace(
+                " ", "_"
+            )
+        else:
+            filename = str(obj.pk)
 
-        # Create a unique filename
-        filename = f"{instance.qr_code}.png"
-
-        # Save the image to the ImageField
-        instance.qr_image.save(
+        return format_html(
+            '<div style="display: flex; flex-direction: column; align-items: flex-start;">'
+            "<div>QR Code: {}</div>"
+            '<div style="display: flex; align-items: center;">'
+            '<a href="{}" target="_blank"><img src="{}" width="100" /></a>'
+            '<div style="margin-left: 10px;">'
+            '<a href="{}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" download="{}.png">Download</a>'
+            '<button onclick="printQrCode(\'{}\')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print</button>'
+            "</div>"
+            "</div>"
+            "<script>"
+            "function printQrCode(imageUrl) {{"
+            "  var printWindow = window.open('', '_blank');"
+            "  printWindow.document.write('<html><head><title>Print QR Code</title></head><body>');"
+            "  printWindow.document.write('<img src=\\\"' + imageUrl + '\\\" style=\\\"max-width: 100%;\\\">');"
+            "  printWindow.document.write('</body></html>');"
+            "  printWindow.document.close();"
+            "  printWindow.focus();"
+            "  printWindow.print();"
+            "  printWindow.close();"
+            "}}"
+            "</script>"
+            "</div>",
+            obj.qr_code,
+            obj.qr_image.url,
+            obj.qr_image.url,
+            obj.qr_image.url,
             filename,
-            ContentFile(buffer.getvalue()),
-            save=False,
+            obj.qr_image.url,
         )
-
-        # Now save the model with both the code and image updated
-        instance.save(update_fields=["qr_code", "qr_image"])
-        return True
-    return False
+    return "No QR code available"

@@ -42,7 +42,7 @@
         </div>
         {% for item in material_breakdown %}
           <div class="bg-white shadow-md rounded-md p-3 border-l-4 border-gray-500">
-            <h3 class="text-md font-semibold mb-1">{{ item.name }}</h3>
+            <h3 class="text-md font-semibold mb-1">{{ item.material__name }}</h3>
             <p class="text-xl text-gray-700">{{ item.count }}</p>
           </div>
         {% endfor %}

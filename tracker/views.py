@@ -1,16 +1,15 @@
 import json
+from django.db.models import Count
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404
 from tracker.models import (
     MaterialPiece,
-    Bundle,
     Scanner,
     ScanEvent,
     ProductionBatch,
     ProductionLine,
 )
-from django.db.models import Count, Q
 
 
 def scan_qr(request):
@@ -40,57 +39,31 @@ def scan_qr_data(request):
         except Scanner.DoesNotExist:
             return HttpResponse("Scanner not found", status=400)
 
-        material_piece = None
-        bundle = None
-
         try:
             # Try to find a MaterialPiece
             material_piece = MaterialPiece.objects.get(qr_code=qr_data)
         except MaterialPiece.DoesNotExist:
-            pass
-
-        try:
-            # Try to find a Bundle
-            bundle = Bundle.objects.get(qr_code=qr_data)
-        except Bundle.DoesNotExist:
-            pass
-
-        if not material_piece and not bundle:
             return HttpResponse("Invalid QR code", status=400)
 
         # Check if a scan event already exists for this scanner and QR code
-        if material_piece:
-            existing_scan = ScanEvent.objects.filter(
-                scanner=scanner, material_piece=material_piece
-            ).exists()
-        elif bundle:
-            existing_scan = ScanEvent.objects.filter(
-                scanner=scanner, bundle=bundle
-            ).exists()
-        else:
-            existing_scan = False
+        existing_scan = ScanEvent.objects.filter(
+            scanner=scanner, material_piece=material_piece
+        ).exists()
 
         if existing_scan:
             return HttpResponse("Scan already registered", status=200)
 
         # Create the ScanEvent
         scan_event = ScanEvent.objects.create(
-            scanner=scanner, material_piece=material_piece, bundle=bundle
+            scanner=scanner, material_piece=material_piece
         )
 
         # Update MaterialPiece location
-        if material_piece:
-            material_piece.current_production_line = production_line
-            material_piece.save()
-            return HttpResponse(
-                f"Material Piece {material_piece.name} scanned at {production_line.name}"
-            )
-        elif bundle:
-            # If a bundle is scanned, update the location of all material pieces in the bundle
-            for piece in bundle.preset.pieces.all():
-                piece.current_production_line = production_line
-                piece.save()
-            return HttpResponse(f"Bundle {bundle.pk} scanned at {production_line.name}")
+        material_piece.current_production_line = production_line
+        material_piece.save()
+        return HttpResponse(
+            f"Material Piece {material_piece.material.name} scanned at {production_line.name}"
+        )
 
     return HttpResponse("Invalid request", status=400)
 
@@ -102,16 +75,15 @@ def dashboard(request):
 
     if batch_id:
         selected_batch = get_object_or_404(ProductionBatch, pk=batch_id)
-        total_pieces = MaterialPiece.objects.filter(style=selected_batch.style).count()
-        total_bundles = Bundle.objects.filter(production_batch=selected_batch).count()
-        total_scan_events = ScanEvent.objects.count()
-        latest_scan_events = ScanEvent.objects.order_by("-scan_time")[:10]
+        total_pieces = MaterialPiece.objects.filter(
+            production_batch=selected_batch
+        ).count()
 
         # Material breakdown
         material_breakdown = (
-            MaterialPiece.objects.filter(style=selected_batch.style)
-            .values("name")
-            .annotate(count=Count("name"))
+            MaterialPiece.objects.filter(production_batch=selected_batch)
+            .values("material__name")
+            .annotate(count=Count("material__name"))
             .order_by("-count")
         )
 
@@ -121,15 +93,16 @@ def dashboard(request):
         for line in production_lines:
             # Count input pieces
             input_pieces = MaterialPiece.objects.filter(
-                current_production_line=line, style=selected_batch.style
+                current_production_line=line, production_batch=selected_batch
             ).count()
 
             # Count output pieces (check for later scans)
             output_pieces = 0
             pieces_in_line = MaterialPiece.objects.filter(
-                current_production_line=line, style=selected_batch.style
+                current_production_line=line, production_batch=selected_batch
             )
             for piece in pieces_in_line:
+                # Check if there's a later scan event for this piece
                 later_scan_exists = ScanEvent.objects.filter(
                     material_piece=piece, scan_time__gt=piece.created_at
                 ).exists()
@@ -149,9 +122,6 @@ def dashboard(request):
             )
     else:
         total_pieces = 0
-        total_bundles = 0
-        total_scan_events = 0
-        latest_scan_events = []
         production_line_stats = []
         material_breakdown = []
 
@@ -159,9 +129,6 @@ def dashboard(request):
         "production_batches": production_batches,
         "selected_batch": selected_batch,
         "total_pieces": total_pieces,
-        "total_bundles": total_bundles,
-        "total_scan_events": total_scan_events,
-        "latest_scan_events": latest_scan_events,
         "production_line_stats": production_line_stats,
         "material_breakdown": material_breakdown,
     }

@@ -5,5 +5,6 @@ module.exports = {
         "./common/**/admin.py",
         "./users/**/admin.py",
         "./tracker/**/admin.py",
+        "./tracker/**/utils.py",
     ],
 };

@@ -1,7 +1,7 @@
 from django.db import models
 from common.models import BaseModel
 from common.fields import OptimizedImageField
-from tracker.utils import material_qr_image_upload_path, bundle_qr_image_upload_path
+from tracker.utils import material_qr_image_upload_path
 
 
 class Buyer(BaseModel):
@@ -30,11 +30,18 @@ class Style(BaseModel):
         unique_together = ("buyer", "season", "style_number")
 
 
-class MaterialPiece(BaseModel):
-    style = models.ForeignKey(
-        Style, on_delete=models.CASCADE, related_name="material_pieces"
-    )
+class Material(BaseModel):
+    style = models.ForeignKey(Style, on_delete=models.CASCADE, related_name="materials")
     name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.style} - {self.name}"
+
+
+class MaterialPiece(BaseModel):
+    material = models.ForeignKey(
+        Material, on_delete=models.CASCADE, related_name="material_pieces"
+    )
     qr_code = models.CharField(max_length=255, unique=True, blank=True, null=True)
     qr_image = OptimizedImageField(
         upload_to=material_qr_image_upload_path,
@@ -47,11 +54,21 @@ class MaterialPiece(BaseModel):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        related_name="current_material_pieces",
+    )
+    production_flow = models.ManyToManyField(
+        "ProductionLine", related_name="material_flow", blank=True
+    )
+    production_batch = models.ForeignKey(
+        "ProductionBatch",
+        on_delete=models.CASCADE,
         related_name="material_pieces",
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
-        return f"{self.style} - {self.name}"
+        return f"{self.material.style} - {self.material.name} - {self.id}"
 
 
 class ProductionLine(BaseModel):
@@ -75,41 +92,11 @@ class ProductionBatch(BaseModel):
         return f"{self.style} - Batch {self.batch_number}"
 
 
-class BundlePreset(BaseModel):
-    name = models.CharField(max_length=255)
-    style = models.ForeignKey(
-        Style, on_delete=models.CASCADE, related_name="bundle_presets"
-    )
-    pieces = models.ManyToManyField(MaterialPiece, related_name="bundle_presets")
-
-    def __str__(self):
-        return self.name
-
-
-class Bundle(BaseModel):
-    production_batch = models.ForeignKey(
-        ProductionBatch, on_delete=models.CASCADE, related_name="bundles"
-    )
-    preset = models.ForeignKey(
-        BundlePreset,
-        on_delete=models.CASCADE,
-        related_name="bundles",
-        blank=True,
-        null=True,
-    )
-    qr_code = models.CharField(max_length=255, unique=True, blank=True, null=True)
-    qr_image = OptimizedImageField(
-        upload_to=bundle_qr_image_upload_path,
-        blank=True,
-        null=True,
-        max_dimensions=(400, 400),
-    )
-
-    def __str__(self):
-        return f"Bundle {self.pk}"
-
-
 class Scanner(BaseModel):
+    class ScannerType(models.TextChoices):
+        IN = "IN", "In"
+        OUT = "OUT", "Out"
+
     name = models.CharField(max_length=100, unique=True)
     production_line = models.ForeignKey(
         ProductionLine,
@@ -117,6 +104,9 @@ class Scanner(BaseModel):
         null=True,
         blank=True,
         related_name="scanners",
+    )
+    type = models.CharField(
+        max_length=4, choices=ScannerType.choices, default=ScannerType.IN
     )
 
     def __str__(self):
@@ -129,13 +119,6 @@ class ScanEvent(BaseModel):
     )
     material_piece = models.ForeignKey(
         MaterialPiece,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="scan_events",
-    )
-    bundle = models.ForeignKey(
-        Bundle,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
