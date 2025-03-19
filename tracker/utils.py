@@ -3,6 +3,7 @@ import qrcode
 import hashlib
 from io import BytesIO
 from django.utils.html import format_html
+from PIL import Image, ImageDraw, ImageFont
 from django.core.files.base import ContentFile
 
 
@@ -24,9 +25,9 @@ def material_qr_image_upload_path(instance, filename):
 def bundle_qr_image_upload_path(instance, filename):
     # Generate path structure: buyer/season/style/
     production_batch = instance.production_batch
-    buyer = production_batch.buyer.name.replace(" ", "_")
-    season = production_batch.season.name.replace(" ", "_")
-    style_name = production_batch.style.name.replace(" ", "_")
+    buyer = production_batch.order.buyer.name.replace(" ", "_")
+    season = production_batch.order.season.name.replace(" ", "_")
+    style_name = production_batch.order.style.name.replace(" ", "_")
 
     # Create directory structure
     path = f"qr_codes/{buyer}/{season}/{style_name}/bundles"
@@ -77,10 +78,65 @@ def generate_material_qr_code(instance):
         )
         qr.add_data(numeric_code)
         qr.make(fit=True)
+        qr_img = qr.make_image(fill_color="black", back_color="white").convert(
+            "RGB"
+        )  # Convert to RGB
 
-        img = qr.make_image(fill_color="black", back_color="white")
+        # Fetch additional details
+        style_name = instance.bundle.production_batch.order.style.name
+        size_name = instance.bundle.size.name if instance.bundle.size else "N/A"
+        color_name = instance.bundle.color.name if instance.bundle.color else "N/A"
+        batch_number = instance.bundle.production_batch.batch_number or "N/A"
+        season_name = instance.bundle.production_batch.order.season.name
+        buyer_name = instance.bundle.production_batch.order.buyer.name
+
+        # Prepare text labels
+        labels = [
+            f"Buyer: {buyer_name}",
+            f"Season: {season_name}",
+            f"Style: {style_name}",
+            f"Size: {size_name}",
+            f"Color: {color_name}",
+            f"Batch: {batch_number}",
+        ]
+
+        # --- Create a combined image ---
+        label_width = 250  # Increased width for more text
+        qr_width, qr_height = qr_img.size
+        img_height = qr_height + 30  # Increased space for the code below
+        img_width = label_width + qr_width  # Labels + QR code
+
+        # Create a new image with white background
+        combined_img = Image.new("RGB", (img_width, img_height), "white")
+        d = ImageDraw.Draw(combined_img)
+
+        # Load a font (adjust path as necessary)
+        try:
+            font = ImageFont.truetype("arial.ttf", 18)  # Increased font size
+        except IOError:
+            font = ImageFont.load_default()  # If Arial is not available
+
+        # Add labels to the left
+        x_offset = 30
+        y_offset = 40
+        line_height = 25
+        for label in labels:
+            d.text((x_offset, y_offset), label, fill="black", font=font)
+            y_offset += line_height
+
+        # Paste the QR code
+        combined_img.paste(qr_img, (label_width, 0))
+
+        # Add the numeric code below the QR code
+        bbox = d.textbbox((0, 0), numeric_code, font=font)
+        code_width = bbox[2] - bbox[0]
+        code_height = bbox[3] - bbox[1]
+        code_x = label_width + (qr_width - code_width) // 2
+        code_y = qr_height -20
+        d.text((code_x, code_y), numeric_code, fill="black", font=font)
+
         buffer = BytesIO()
-        img.save(buffer, format="PNG")
+        combined_img.save(buffer, format="PNG")
 
         # Create a unique filename
         filename = f"{instance.qr_code}.png"
@@ -114,10 +170,65 @@ def generate_bundle_qr_code(instance):
         )
         qr.add_data(numeric_code)
         qr.make(fit=True)
+        qr_img = qr.make_image(fill_color="black", back_color="white").convert(
+            "RGB"
+        )  # Convert to RGB
 
-        img = qr.make_image(fill_color="black", back_color="white")
+        # Fetch additional details
+        style_name = instance.production_batch.order.style.name
+        size_name = instance.size.name if instance.size else "N/A"
+        color_name = instance.color.name if instance.color else "N/A"
+        batch_number = instance.production_batch.batch_number or "N/A"
+        season_name = instance.production_batch.order.season.name
+        buyer_name = instance.production_batch.order.buyer.name
+
+        # Prepare text labels
+        labels = [
+            f"Buyer: {buyer_name}",
+            f"Season: {season_name}",
+            f"Style: {style_name}",
+            f"Size: {size_name}",
+            f"Color: {color_name}",
+            f"Batch: {batch_number}",
+        ]
+
+        # --- Create a combined image ---
+        label_width = 250  # Increased width for more text
+        qr_width, qr_height = qr_img.size
+        img_height = qr_height + 30  # Increased space for the code below
+        img_width = label_width + qr_width  # Labels + QR code
+
+        # Create a new image with white background
+        combined_img = Image.new("RGB", (img_width, img_height), "white")
+        d = ImageDraw.Draw(combined_img)
+
+        # Load a font (adjust path as necessary)
+        try:
+            font = ImageFont.truetype("arial.ttf", 18)  # Increased font size
+        except IOError:
+            font = ImageFont.load_default()  # If Arial is not available
+
+        # Add labels to the left
+        x_offset = 15  # Added horizontal offset/padding
+        y_offset = 15  # Increased vertical offset/padding
+        line_height = 25  # Increased line height for better spacing
+        for label in labels:
+            d.text((x_offset, y_offset), label, fill="black", font=font)
+            y_offset += line_height
+
+        # Paste the QR code
+        combined_img.paste(qr_img, (label_width, 0))
+
+        # Add the numeric code below the QR code
+        bbox = d.textbbox((0, 0), numeric_code, font=font)
+        code_width = bbox[2] - bbox[0]
+        code_height = bbox[3] - bbox[1]
+        code_x = label_width + (qr_width - code_width) // 2
+        code_y = qr_height + 5  # Adjust position of the code
+        d.text((code_x, code_y), numeric_code, fill="black", font=font)
+
         buffer = BytesIO()
-        img.save(buffer, format="PNG")
+        combined_img.save(buffer, format="PNG")
 
         # Create a unique filename
         filename = f"{instance.qr_code}.png"
