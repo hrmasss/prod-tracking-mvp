@@ -32,7 +32,7 @@
         <i class="ph-duotone ph-info text-gray-600 mr-1"></i>
         Production Batch: {{ selected_batch.style }} - Batch {{ selected_batch.batch_number }}
       </h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
         <div class="bg-white shadow-md rounded-md p-5 border-l-4 border-blue-500">
           <h2 class="text-lg font-semibold mb-2">
             <i class="ph-duotone ph-squares-plus text-blue-500 mr-1"></i>
@@ -40,6 +40,12 @@
           </h2>
           <p class="text-3xl text-blue-700">{{ total_pieces }}</p>
         </div>
+        {% for item in material_breakdown %}
+          <div class="bg-white shadow-md rounded-md p-3 border-l-4 border-gray-500">
+            <h3 class="text-md font-semibold mb-1">{{ item.name }}</h3>
+            <p class="text-xl text-gray-700">{{ item.count }}</p>
+          </div>
+        {% endfor %}
       </div>
     {% endif %}
     <!-- Production Line Stats -->

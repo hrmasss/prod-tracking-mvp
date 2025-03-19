@@ -107,6 +107,14 @@ def dashboard(request):
         total_scan_events = ScanEvent.objects.count()
         latest_scan_events = ScanEvent.objects.order_by("-scan_time")[:10]
 
+        # Material breakdown
+        material_breakdown = (
+            MaterialPiece.objects.filter(style=selected_batch.style)
+            .values("name")
+            .annotate(count=Count("name"))
+            .order_by("-count")
+        )
+
         # Get production line stats
         production_lines = ProductionLine.objects.all()
         production_line_stats = []
@@ -145,6 +153,7 @@ def dashboard(request):
         total_scan_events = 0
         latest_scan_events = []
         production_line_stats = []
+        material_breakdown = []
 
     context = {
         "production_batches": production_batches,
@@ -154,5 +163,6 @@ def dashboard(request):
         "total_scan_events": total_scan_events,
         "latest_scan_events": latest_scan_events,
         "production_line_stats": production_line_stats,
+        "material_breakdown": material_breakdown,
     }
     return render(request, "tracker/dashboard.html", context)
