@@ -25,12 +25,20 @@ class Size(BaseModel):
         return self.name
 
 
+class Color(BaseModel):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Style(BaseModel):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="styles")
     season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="styles")
     style_name = models.CharField(max_length=100)
     buyer_contract_number = models.CharField(max_length=200, blank=True, null=True)
     sizes = models.ManyToManyField(Size, related_name="styles", blank=True)
+    colors = models.ManyToManyField(Color, related_name="styles", blank=True)
 
     def __str__(self):
         return f"{self.buyer} - {self.season} - {self.style_name}"
@@ -39,16 +47,59 @@ class Style(BaseModel):
         unique_together = ("buyer", "season", "style_name")
 
 
+class MaterialType(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Material(BaseModel):
     style = models.ForeignKey(Style, on_delete=models.CASCADE, related_name="materials")
     name = models.CharField(max_length=100)
+    material_type = models.ForeignKey(
+        MaterialType, on_delete=models.CASCADE, related_name="materials"
+    )
+    unit = models.CharField(max_length=20, default="pcs")
+    color = models.ForeignKey(
+        Color, on_delete=models.CASCADE, related_name="materials", null=True, blank=True
+    )
 
     def __str__(self):
-        return f"{self.style} - {self.name}"
+        return f"{self.style} - {self.name} ({self.material_type})"
+
+
+class Operation(BaseModel):
+    class OperationCategory(models.TextChoices):
+        CUTTING = "CUTTING", "Cutting"
+        SEWING = "SEWING", "Sewing"
+        FINISHING = "FINISHING", "Finishing"
+        PACKING = "PACKING", "Packing"
+        QUILTING = "QUILTING", "Quilting"
+        DOWNFILLING = "DOWNFILLING", "Downfilling"
+
+    name = models.CharField(max_length=100, unique=True)
+    type = models.CharField(
+        max_length=20,
+        choices=OperationCategory.choices,
+        default=OperationCategory.SEWING,
+    )
+    sequence = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ["sequence"]
 
 
 class ProductionLine(BaseModel):
     name = models.CharField(max_length=100, unique=True)
+    operation_type = models.CharField(
+        max_length=20,
+        choices=Operation.OperationCategory.choices,
+        default=Operation.OperationCategory.SEWING,
+    )
     location = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
@@ -78,6 +129,9 @@ class Bundle(BaseModel):
     size = models.ForeignKey(
         Size, on_delete=models.CASCADE, related_name="bundles", null=True, blank=True
     )
+    color = models.ForeignKey(
+        Color, on_delete=models.CASCADE, related_name="bundles", null=True, blank=True
+    )
     quantity = models.PositiveIntegerField(default=1)
     qr_code = models.CharField(max_length=255, unique=True, blank=True, null=True)
     qr_image = OptimizedImageField(
@@ -85,7 +139,7 @@ class Bundle(BaseModel):
     )
 
     def __str__(self):
-        return f"Bundle for {self.material} ({self.size}) - Batch {self.production_batch.batch_number}"
+        return f"Bundle for {self.material} ({self.size}) ({self.color}) - Batch {self.production_batch.batch_number}"
 
 
 class MaterialPiece(BaseModel):
@@ -136,6 +190,23 @@ class Scanner(BaseModel):
         return self.name
 
 
+class Defect(BaseModel):
+    type = models.CharField(
+        max_length=20,
+        choices=Operation.OperationCategory.choices,
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(max_length=100)
+    severity_level = models.PositiveSmallIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.name} ({self.category})"
+
+    class Meta:
+        unique_together = ("type", "name")
+
+
 class QualityCheck(BaseModel):
     class QualityStatus(models.TextChoices):
         ACCEPTED = "ACCEPTED", "Accepted"
@@ -148,7 +219,7 @@ class QualityCheck(BaseModel):
     status = models.CharField(
         max_length=10, choices=QualityStatus.choices, default=QualityStatus.ACCEPTED
     )
-    defect_code = models.CharField(max_length=100, blank=True, null=True)
+    defects = models.ManyToManyField(Defect, related_name="quality_checks", blank=True)
     notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -186,3 +257,21 @@ class ScanEvent(BaseModel):
 
     def __str__(self):
         return f"Scan Event - {self.scan_time}"
+
+
+class ProductionTarget(BaseModel):
+    production_line = models.ForeignKey(
+        ProductionLine, on_delete=models.CASCADE, related_name="targets"
+    )
+    style = models.ForeignKey(Style, on_delete=models.CASCADE, related_name="targets")
+    date = models.DateField()
+    target_quantity = models.PositiveIntegerField()
+    actual_quantity = models.PositiveIntegerField(default=0)
+
+    def efficiency_percentage(self):
+        if self.target_quantity > 0:
+            return (self.actual_quantity / self.target_quantity) * 100
+        return 0
+
+    class Meta:
+        unique_together = ("production_line", "style", "date")
