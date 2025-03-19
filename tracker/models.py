@@ -29,9 +29,7 @@ class Style(BaseModel):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="styles")
     season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="styles")
     style_name = models.CharField(max_length=100)
-    buyer_contract = models.FileField(
-        upload_to="buyer_contracts/", blank=True, null=True
-    )
+    buyer_contract_number = models.CharField(max_length=200, blank=True, null=True)
     sizes = models.ManyToManyField(Size, related_name="styles", blank=True)
 
     def __str__(self):
