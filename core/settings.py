@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "safedelete",
     "guardian",
     "auditlog",
+    "django_extensions",
     # Local applications
     "common",
     "users",
