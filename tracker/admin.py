@@ -24,12 +24,12 @@ from tracker.models import (
 
 class MaterialInline(TabularInline):
     model = Material
-    extra = 1
+    extra = 0
 
 
 class BundleInline(TabularInline):
     model = Bundle
-    extra = 1
+    extra = 0
     readonly_fields = ["qr_image_display"]
     fields = ["production_batch", "material", "size", "quantity", "qr_image_display"]
 
@@ -47,7 +47,7 @@ class BundleInline(TabularInline):
 
 class MaterialPieceInline(TabularInline):
     model = MaterialPiece
-    extra = 1
+    extra = 0
     readonly_fields = ["qr_image_display"]
     fields = ["bundle", "qr_image_display"]
 
@@ -65,7 +65,7 @@ class MaterialPieceInline(TabularInline):
 
 class ScannerInline(TabularInline):
     model = Scanner
-    extra = 1
+    extra = 0
 
 
 @admin.register(Buyer)
@@ -87,7 +87,7 @@ class SizeAdmin(BaseModelAdmin):
 class StyleAdmin(BaseModelAdmin):
     list_display = ("buyer", "season", "style_name", "created_at", "updated_at")
     list_filter = ("buyer", "season")
-    filter_horizontal = ("sizes",)  # Use filter_horizontal for ManyToManyField
+    filter_horizontal = ("sizes",)
     inlines = [MaterialInline]
 
 
