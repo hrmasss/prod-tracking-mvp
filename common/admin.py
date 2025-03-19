@@ -1,5 +1,5 @@
 from django.db import models
-from unfold.admin import ModelAdmin, TabularInline
+from unfold.admin import ModelAdmin, StackedInline
 from simple_history.admin import SimpleHistoryAdmin
 from unfold.widgets import (
     UnfoldAdminSelectWidget,
@@ -8,7 +8,7 @@ from unfold.widgets import (
 )
 
 
-class BaseInlineAdmin(TabularInline):
+class BaseInlineAdmin(StackedInline):
     exclude = ["created_at", "updated_at", "created_by", "updated_by"]
     formfield_overrides = {
         models.CharField: {"widget": UnfoldAdminTextInputWidget},
