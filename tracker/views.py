@@ -1,6 +1,6 @@
 import json
+from django.db.models import Count, Min, F
 from django.http import HttpResponse
-from django.db.models import Count, Min, F, Q
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404
 from tracker.models import (
@@ -91,6 +91,11 @@ def dashboard(request):
         production_lines = ProductionLine.objects.all()
         production_line_stats = []
         for line in production_lines:
+            # Get all material pieces in the selected batch
+            material_pieces = MaterialPiece.objects.filter(
+                production_batch=selected_batch
+            )
+
             # Get all scanners for the current production line
             in_scanners = Scanner.objects.filter(
                 production_line=line, type=Scanner.ScannerType.IN
@@ -108,27 +113,33 @@ def dashboard(request):
                 .count()
             )
 
+            # Find material pieces that have been scanned on this line
+            pieces_scanned_on_line = MaterialPiece.objects.filter(
+                production_batch=selected_batch,
+                scan_events__scanner__production_line=line,
+            ).distinct()
+
             # Count unique material pieces that have a scan event on a DIFFERENT production line AFTER being scanned on this line
-            output_pieces = (
-                MaterialPiece.objects.filter(production_batch=selected_batch)
-                .filter(
-                    scan_events__scanner__production_line=line
-                )  # Scanned on this line at some point
-                .annotate(
-                    first_scan_on_line=Min(
-                        "scan_events__scan_time",
-                        filter=Q(scan_events__scanner__production_line=line),
+            output_pieces = 0
+            for piece in pieces_scanned_on_line:
+                # Find the first scan time on the current line
+                first_scan_on_line = ScanEvent.objects.filter(
+                    material_piece=piece, scanner__production_line=line
+                ).aggregate(Min("scan_time"))["scan_time__min"]
+
+                # Check if there are any later scans on a different line
+                later_scan_on_another_line = (
+                    ScanEvent.objects.filter(
+                        material_piece=piece,
+                        scan_time__gt=first_scan_on_line,
+                        scanner__production_line__isnull=False,
                     )
-                )  # Find the first scan on this line
-                .filter(
-                    scan_events__scan_time__gt=F("first_scan_on_line")
-                )  # Filter for scans AFTER the first scan on this line
-                .exclude(
-                    scan_events__scanner__production_line=line
-                )  # Exclude scans on the current line
-                .distinct()
-                .count()
-            )
+                    .exclude(scanner__production_line=line)
+                    .exists()
+                )
+
+                if later_scan_on_another_line:
+                    output_pieces += 1
 
             # Calculate shortage/liability
             shortage_liability = input_pieces - output_pieces
