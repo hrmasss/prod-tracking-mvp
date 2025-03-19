@@ -20,7 +20,13 @@ from tracker.models import (
 class MaterialPieceInline(BaseInlineAdmin):
     model = MaterialPiece
     extra = 1
-    fields = ["name"]
+    fields = ["name", "qr_image_display"]
+    readonly_fields = ["qr_image_display"]
+
+    def qr_image_display(self, obj):
+        return render_qr_code(obj)
+
+    qr_image_display.short_description = "QR Code"
 
 
 class ScannerInline(BaseInlineAdmin):

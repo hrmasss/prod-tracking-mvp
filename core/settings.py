@@ -155,7 +155,7 @@ LANGUAGE_CODE = "en-us"
 USE_I18N = True
 
 # --- TIME ZONE ---
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Dhaka"
 USE_TZ = True
 
 # --- DEFAULT AUTO FIELD ---

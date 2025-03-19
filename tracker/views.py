@@ -2,7 +2,14 @@ import json
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404
-from tracker.models import MaterialPiece, Bundle, Scanner, ScanEvent, ProductionBatch
+from tracker.models import (
+    MaterialPiece,
+    Bundle,
+    Scanner,
+    ScanEvent,
+    ProductionBatch,
+    ProductionLine,
+)
 
 
 def scan_qr(request):
@@ -24,7 +31,7 @@ def scan_qr_data(request):
 
         try:
             scanner = Scanner.objects.get(name=scanner_name)
-            production_line = scanner.production_line  # Get the production line
+            production_line = scanner.production_line
             if not production_line:
                 return HttpResponse(
                     "Scanner is not assigned to a production line.", status=400
@@ -66,15 +73,22 @@ def scan_qr_data(request):
             return HttpResponse("Scan already registered", status=200)
 
         # Create the ScanEvent
-        ScanEvent.objects.create(
+        scan_event = ScanEvent.objects.create(
             scanner=scanner, material_piece=material_piece, bundle=bundle
         )
 
+        # Update MaterialPiece location
         if material_piece:
+            material_piece.current_production_line = production_line
+            material_piece.save()
             return HttpResponse(
                 f"Material Piece {material_piece.name} scanned at {production_line.name}"
             )
         elif bundle:
+            # If a bundle is scanned, update the location of all material pieces in the bundle
+            for piece in bundle.preset.pieces.all():
+                piece.current_production_line = production_line
+                piece.save()
             return HttpResponse(f"Bundle {bundle.pk} scanned at {production_line.name}")
 
     return HttpResponse("Invalid request", status=400)
@@ -91,11 +105,28 @@ def dashboard(request):
         total_bundles = Bundle.objects.filter(production_batch=selected_batch).count()
         total_scan_events = ScanEvent.objects.count()
         latest_scan_events = ScanEvent.objects.order_by("-scan_time")[:10]
+
+        # Get production line stats
+        production_lines = ProductionLine.objects.all()
+        production_line_stats = []
+        for line in production_lines:
+            # Count material pieces in the production line for the selected batch
+            input_pieces = MaterialPiece.objects.filter(
+                current_production_line=line, style=selected_batch.style
+            ).count()
+
+            production_line_stats.append(
+                {
+                    "line": line,
+                    "input_pieces": input_pieces,
+                }
+            )
     else:
         total_pieces = 0
         total_bundles = 0
         total_scan_events = 0
         latest_scan_events = []
+        production_line_stats = []
 
     context = {
         "production_batches": production_batches,
@@ -104,5 +135,6 @@ def dashboard(request):
         "total_bundles": total_bundles,
         "total_scan_events": total_scan_events,
         "latest_scan_events": latest_scan_events,
+        "production_line_stats": production_line_stats,
     }
     return render(request, "tracker/dashboard.html", context)

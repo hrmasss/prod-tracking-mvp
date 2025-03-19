@@ -42,6 +42,13 @@ class MaterialPiece(BaseModel):
         null=True,
         max_dimensions=(400, 400),
     )
+    current_production_line = models.ForeignKey(
+        "ProductionLine",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="material_pieces",
+    )
 
     def __str__(self):
         return f"{self.style} - {self.name}"
