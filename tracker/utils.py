@@ -11,10 +11,10 @@ from django.core.files.base import ContentFile
 
 def material_qr_image_upload_path(instance, filename):
     # Generate path structure: buyer/season/style/
-    style = instance.bundle.material.style
-    buyer = style.buyer.name.replace(" ", "_")
-    season = style.season.name.replace(" ", "_")
-    style_name = style.style_name.replace(" ", "_")
+    bundle = instance.bundle
+    buyer = bundle.production_batch.order.buyer.name.replace(" ", "_")
+    season = bundle.production_batch.order.season.name.replace(" ", "_")
+    style_name = bundle.production_batch.order.style.name.replace(" ", "_")
 
     # Create directory structure
     path = f"qr_codes/{buyer}/{season}/{style_name}"
@@ -23,10 +23,10 @@ def material_qr_image_upload_path(instance, filename):
 
 def bundle_qr_image_upload_path(instance, filename):
     # Generate path structure: buyer/season/style/
-    style = instance.material.style
-    buyer = style.buyer.name.replace(" ", "_")
-    season = style.season.name.replace(" ", "_")
-    style_name = style.style_name.replace(" ", "_")
+    production_batch = instance.production_batch
+    buyer = production_batch.buyer.name.replace(" ", "_")
+    season = production_batch.season.name.replace(" ", "_")
+    style_name = production_batch.style.name.replace(" ", "_")
 
     # Create directory structure
     path = f"qr_codes/{buyer}/{season}/{style_name}/bundles"
@@ -140,13 +140,7 @@ def generate_bundle_qr_code(instance):
 
 def render_qr_code(obj):
     if obj.qr_image:
-        filename = "material_piece"
-        if hasattr(obj, "bundle"):
-            filename = f"{obj.bundle.material.style.buyer.name}_{obj.bundle.material.style.season.name}_{obj.bundle.material.style.style_name}_{obj.bundle.material.name}_{obj.bundle.size}".replace(
-                " ", "_"
-            )
-        else:
-            filename = str(obj.pk)
+        filename = str(obj.pk)
 
         return format_html(
             '<div style="display: flex; flex-direction: column; align-items: flex-start;">'

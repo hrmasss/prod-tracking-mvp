@@ -66,7 +66,14 @@ class BundleInline(TabularInline):
     model = Bundle
     extra = 0
     readonly_fields = ["qr_image_display"]
-    fields = ["production_batch", "material", "size", "quantity", "qr_image_display"]
+    fields = [
+        "production_batch",
+        "material",
+        "size",
+        "color",
+        "quantity",
+        "qr_image_display",
+    ]
 
     def qr_image_display(self, obj):
         return render_qr_code(obj)
@@ -171,8 +178,7 @@ class ProductionTargetAdmin(BaseModelAdmin):
 
 @admin.register(Style)
 class StyleAdmin(BaseModelAdmin):
-    list_display = ("style_name", "created_at", "updated_at")
-    inlines = [MaterialInline, OrderInline]
+    list_display = ("name", "created_at", "updated_at")
 
 
 @admin.register(Order)
@@ -184,8 +190,8 @@ class OrderAdmin(BaseModelAdmin):
 
 @admin.register(Material)
 class MaterialAdmin(BaseModelAdmin):
-    list_display = ("style", "name")
-    list_filter = ("style",)
+    list_display = ("material_type", "name", "unit", "color")
+    list_filter = ("material_type",)
 
 
 @admin.register(Bundle)
@@ -194,18 +200,20 @@ class BundleAdmin(BaseModelAdmin):
         "production_batch",
         "material",
         "size",
+        "color",
         "quantity",
         "qr_code",
         "qr_image_display",
         "created_at",
         "updated_at",
     )
-    list_filter = ("production_batch", "material", "size")
+    list_filter = ("production_batch", "material", "size", "color")
     readonly_fields = ["qr_code", "qr_image_display", "print_pieces_qr_codes"]
     fields = [
         "production_batch",
         "material",
         "size",
+        "color",
         "quantity",
         "qr_image_display",
         "print_pieces_qr_codes",
@@ -246,14 +254,14 @@ class MaterialPieceAdmin(BaseModelAdmin):
 
 @admin.register(ProductionBatch)
 class ProductionBatchAdmin(BaseModelAdmin):
-    list_display = ("style", "batch_number", "created_at", "updated_at")
+    list_display = ("order", "batch_number")
     inlines = [BundleInline]
     filter_horizontal = ("production_lines",)
 
 
 @admin.register(ProductionLine)
 class ProductionLineAdmin(BaseModelAdmin):
-    list_display = ("name", "location", "created_at", "updated_at")
+    list_display = ("name", "location")
     inlines = [ScannerInline]
 
 

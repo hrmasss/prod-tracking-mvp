@@ -33,10 +33,10 @@ class Color(BaseModel):
 
 
 class Style(BaseModel):
-    style_name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"{self.buyer} - {self.season} - {self.style_name}"
+        return f"{self.buyer} - {self.season} - {self.name}"
 
 
 class Order(BaseModel):
@@ -48,6 +48,9 @@ class Order(BaseModel):
     order_number = models.CharField(max_length=200, null=True, blank=True)
     delivery_date = models.DateField()
 
+    def __str__(self):
+        return f"{self.buyer.name} - {self.season.name} - {self.style.name} - {self.order_number}"
+
 
 class OrderItem(BaseModel):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
@@ -56,6 +59,9 @@ class OrderItem(BaseModel):
         Color, on_delete=models.CASCADE, related_name="order_items"
     )
     quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.order.order_number} - {self.size} - {self.color}"
 
 
 class MaterialType(BaseModel):
@@ -66,7 +72,6 @@ class MaterialType(BaseModel):
 
 
 class Material(BaseModel):
-    style = models.ForeignKey(Style, on_delete=models.CASCADE, related_name="materials")
     name = models.CharField(max_length=100)
     material_type = models.ForeignKey(
         MaterialType, on_delete=models.CASCADE, related_name="materials"
@@ -77,7 +82,7 @@ class Material(BaseModel):
     )
 
     def __str__(self):
-        return f"{self.style} - {self.name} ({self.material_type})"
+        return f"{self.material_type} - {self.name} ({self.color})"
 
 
 class Operation(BaseModel):
@@ -118,16 +123,14 @@ class ProductionLine(BaseModel):
 
 
 class ProductionBatch(BaseModel):
-    style = models.ForeignKey(
-        Style, on_delete=models.CASCADE, related_name="production_batches"
-    )
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="batches")
     production_lines = models.ManyToManyField(
         ProductionLine, related_name="production_batches", blank=True
     )
     batch_number = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.style} - Batch {self.batch_number}"
+        return f"{self.order.style.name} - Batch {self.batch_number}"
 
 
 class Bundle(BaseModel):
