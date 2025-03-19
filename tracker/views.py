@@ -10,6 +10,7 @@ from tracker.models import (
     ProductionBatch,
     ProductionLine,
 )
+from django.db.models import Count, Q
 
 
 def scan_qr(request):
@@ -110,15 +111,32 @@ def dashboard(request):
         production_lines = ProductionLine.objects.all()
         production_line_stats = []
         for line in production_lines:
-            # Count material pieces in the production line for the selected batch
+            # Count input pieces
             input_pieces = MaterialPiece.objects.filter(
                 current_production_line=line, style=selected_batch.style
             ).count()
+
+            # Count output pieces (check for later scans)
+            output_pieces = 0
+            pieces_in_line = MaterialPiece.objects.filter(
+                current_production_line=line, style=selected_batch.style
+            )
+            for piece in pieces_in_line:
+                later_scan_exists = ScanEvent.objects.filter(
+                    material_piece=piece, scan_time__gt=piece.created_at
+                ).exists()
+                if later_scan_exists:
+                    output_pieces += 1
+
+            # Calculate shortage/liability
+            shortage_liability = input_pieces - output_pieces
 
             production_line_stats.append(
                 {
                     "line": line,
                     "input_pieces": input_pieces,
+                    "output_pieces": output_pieces,
+                    "shortage_liability": shortage_liability,
                 }
             )
     else:
