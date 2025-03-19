@@ -6,6 +6,7 @@ UNFOLD_CONFIG = {
     "SITE_TITLE": "Production Tracking Admin",
     "SITE_HEADER": "Production Tracking",
     "SITE_SYMBOL": "barcode",
+    "THEME": "light",
     "STYLES": [
         lambda request: static("css/admin.styles.css"),
     ],

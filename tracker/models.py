@@ -1,5 +1,7 @@
 from django.db import models
 from common.models import BaseModel
+from common.fields import OptimizedImageField
+from tracker.utils import material_qr_image_upload_path, bundle_qr_image_upload_path
 
 
 class Buyer(BaseModel):
@@ -33,8 +35,12 @@ class MaterialPiece(BaseModel):
         Style, on_delete=models.CASCADE, related_name="material_pieces"
     )
     name = models.CharField(max_length=100)
-    qr_code = models.CharField(
-        max_length=255, unique=True, blank=True, null=True
+    qr_code = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    qr_image = OptimizedImageField(
+        upload_to=material_qr_image_upload_path,
+        blank=True,
+        null=True,
+        max_dimensions=(400, 400),
     )
 
     def __str__(self):
@@ -44,8 +50,12 @@ class MaterialPiece(BaseModel):
 class Bundle(BaseModel):
     name = models.CharField(max_length=100)
     pieces = models.ManyToManyField(MaterialPiece, related_name="bundles", blank=True)
-    qr_code = models.CharField(
-        max_length=255, unique=True, blank=True, null=True
+    qr_code = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    qr_image = OptimizedImageField(
+        upload_to=bundle_qr_image_upload_path,
+        blank=True,
+        null=True,
+        max_dimensions=(400, 400),
     )
 
     def __str__(self):

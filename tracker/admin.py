@@ -1,8 +1,11 @@
 import qrcode
 from io import BytesIO
 from django.contrib import admin
-from unfold.admin import ModelAdmin, TabularInline  # Import TabularInline
+from django.utils.html import format_html
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.core.files.base import ContentFile
+from common.admin import BaseModelAdmin, BaseInlineAdmin
 from tracker.models import (
     Buyer,
     Season,
@@ -15,15 +18,116 @@ from tracker.models import (
 )
 
 
+# --- QR CODE GENERATION FUNCTIONS ---
+
+
+def generate_material_qr_code(instance):
+    """Generate QR code for a material piece instance"""
+    if instance and not instance.qr_code:
+        # Generate the text-based QR code identifier
+        qr_code_text = f"material_piece:{instance.id}"
+        instance.qr_code = qr_code_text
+
+        # Generate the QR image
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_code_text)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+
+        # Create a unique filename
+        filename = f"{instance.name.replace(' ', '_')}_qr.png"
+
+        # Save the image to the ImageField
+        instance.qr_image.save(
+            filename,
+            ContentFile(buffer.getvalue()),
+            save=True,
+        )
+        return True
+    return False
+
+
+def generate_bundle_qr_code(instance):
+    """Generate QR code for a bundle instance"""
+    if instance and not instance.qr_code:
+        # Generate the text-based QR code identifier
+        qr_code_text = f"bundle:{instance.id}"
+        instance.qr_code = qr_code_text
+
+        # Generate the QR image
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_code_text)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+
+        # Create a unique filename
+        filename = f"{instance.name.replace(' ', '_')}_qr.png"
+
+        # Save the image to the ImageField
+        instance.qr_image.save(
+            filename,
+            ContentFile(buffer.getvalue()),
+            save=True,
+        )
+        return True
+    return False
+
+
+# --- SIGNAL HANDLERS ---
+
+
+@receiver(post_save, sender=MaterialPiece)
+def material_piece_post_save(sender, instance, created, **kwargs):
+    """Handle automatic QR code generation after save"""
+    if created:
+        generate_material_qr_code(instance)
+
+
+@receiver(post_save, sender=Bundle)
+def bundle_post_save(sender, instance, created, **kwargs):
+    """Handle automatic QR code generation after save"""
+    if created:
+        generate_bundle_qr_code(instance)
+
+
 # --- INLINE ADMIN CLASSES ---
 
 
-class MaterialPieceInline(TabularInline):
+class MaterialPieceInline(BaseInlineAdmin):
     model = MaterialPiece
     extra = 1
+    fields = ["name", "qr_image_display"]
+    readonly_fields = ["qr_image_display"]
+
+    def qr_image_display(self, obj):
+        if obj.pk and obj.qr_image:
+            return format_html(
+                '<a href="{}" target="_blank"><img src="{}" width="100" /><br>View QR Code</a>',
+                obj.qr_image.url,
+                obj.qr_image.url,
+            )
+        return "QR code will be generated after saving"
+
+    qr_image_display.short_description = "QR Code"
 
 
-class ScannerInline(TabularInline):
+class ScannerInline(BaseInlineAdmin):
     model = Scanner
     extra = 1
 
@@ -32,97 +136,80 @@ class ScannerInline(TabularInline):
 
 
 @admin.register(Buyer)
-class BuyerAdmin(ModelAdmin):
+class BuyerAdmin(BaseModelAdmin):
     list_display = ("name", "created_at", "updated_at")
 
 
 @admin.register(Season)
-class SeasonAdmin(ModelAdmin):
+class SeasonAdmin(BaseModelAdmin):
     list_display = ("name", "created_at", "updated_at")
 
 
 @admin.register(Style)
-class StyleAdmin(ModelAdmin):
+class StyleAdmin(BaseModelAdmin):
     list_display = ("buyer", "season", "style_number", "created_at", "updated_at")
     list_filter = ("buyer", "season")
     inlines = [MaterialPieceInline]
 
 
 @admin.register(MaterialPiece)
-class MaterialPieceAdmin(ModelAdmin):
-    list_display = ("style", "name", "qr_code", "created_at", "updated_at")
+class MaterialPieceAdmin(BaseModelAdmin):
+    list_display = (
+        "style",
+        "name",
+        "qr_code",
+        "qr_image_display",
+        "created_at",
+        "updated_at",
+    )
     list_filter = ("style",)
+    readonly_fields = ["qr_code", "qr_image_display"]
+    fields = ["style", "name", "qr_code", "qr_image_display"]
 
-    def save_model(self, request, obj, form, change):
-        # Generate QR code if it doesn't exist
-        if not obj.qr_code:
-            qr = qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L,
-                box_size=10,
-                border=4,
+    def qr_image_display(self, obj):
+        if obj.qr_image:
+            return format_html(
+                '<a href="{}" target="_blank"><img src="{}" width="100" /><br>View QR Code</a>',
+                obj.qr_image.url,
+                obj.qr_image.url,
             )
-            qr_data = f"material_piece:{obj.id}"
-            qr.add_data(qr_data)
-            qr.make(fit=True)
+        return "No QR code available"
 
-            img = qr.make_image(fill_color="black", back_color="white")
-            buffer = BytesIO()
-            img.save(buffer, format="PNG")
-            qr_code_image = ContentFile(
-                buffer.getvalue(), f"material_piece_{obj.id}.png"
-            )
-
-            obj.qr_code = f"material_piece_{obj.id}.png"
-            # TODO: Save the image to a file storage
-            # obj.qr_code.save(f"material_piece_{obj.id}.png", qr_code_image, save=False)
-
-        super().save_model(request, obj, form, change)
+    qr_image_display.short_description = "QR Code Image"
 
 
 @admin.register(Bundle)
-class BundleAdmin(ModelAdmin):
-    list_display = ("name", "qr_code", "created_at", "updated_at")
+class BundleAdmin(BaseModelAdmin):
+    list_display = ("name", "qr_code", "qr_image_display", "created_at", "updated_at")
     filter_horizontal = ("pieces",)
+    readonly_fields = ["qr_code", "qr_image_display"]
+    fields = ["name", "pieces", "qr_code", "qr_image_display"]
 
-    def save_model(self, request, obj, form, change):
-        # Generate QR code if it doesn't exist
-        if not obj.qr_code:
-            qr = qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L,
-                box_size=10,
-                border=4,
+    def qr_image_display(self, obj):
+        if obj.qr_image:
+            return format_html(
+                '<a href="{}" target="_blank"><img src="{}" width="100" /><br>View QR Code</a>',
+                obj.qr_image.url,
+                obj.qr_image.url,
             )
-            qr_data = f"bundle:{obj.id}"
-            qr.add_data(qr_data)
-            qr.make(fit=True)
+        return "No QR code available"
 
-            img = qr.make_image(fill_color="black", back_color="white")
-            buffer = BytesIO()
-            img.save(buffer, format="PNG")
-            qr_code_image = ContentFile(buffer.getvalue(), f"bundle_{obj.id}.png")
-
-            obj.qr_code = f"bundle_{obj.id}.png"
-            # TODO: Save the image to a file storage
-            # obj.qr_code.save(f"bundle_{obj.id}.png", qr_code_image, save=False)
-
-        super().save_model(request, obj, form, change)
+    qr_image_display.short_description = "QR Code Image"
 
 
 @admin.register(ProductionLine)
-class ProductionLineAdmin(ModelAdmin):
+class ProductionLineAdmin(BaseModelAdmin):
     list_display = ("name", "location", "created_at", "updated_at")
     inlines = [ScannerInline]
 
 
 @admin.register(Scanner)
-class ScannerAdmin(ModelAdmin):
+class ScannerAdmin(BaseModelAdmin):
     list_display = ("name", "production_line", "created_at", "updated_at")
     list_filter = ("production_line",)
 
 
 @admin.register(ScanEvent)
-class ScanEventAdmin(ModelAdmin):
+class ScanEventAdmin(BaseModelAdmin):
     list_display = ("scanner", "material_piece", "bundle", "scan_time")
     list_filter = ("scanner", "scan_time")

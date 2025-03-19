@@ -9,8 +9,7 @@ from unfold.widgets import (
 
 
 class BaseInlineAdmin(TabularInline):
-    readonly_fields = ["created_at", "updated_at", "created_by", "updated_by"]
-    exclude = ["created_by", "updated_by"]
+    exclude = ["created_at", "updated_at", "created_by", "updated_by"]
     formfield_overrides = {
         models.CharField: {"widget": UnfoldAdminTextInputWidget},
         models.TextField: {"widget": UnfoldAdminTextInputWidget},
@@ -29,7 +28,7 @@ class BaseInlineAdmin(TabularInline):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        for field in self.readonly_fields + self.exclude:
+        for field in self.readonly_fields:
             if field in form.base_fields:
                 form.base_fields[field].widget.attrs["disabled"] = True
                 form.base_fields[field].required = False
@@ -69,7 +68,9 @@ class BaseModelAdmin(ModelAdmin, SimpleHistoryAdmin):
                     "Tracking Information",
                     {
                         "fields": self.readonly_fields,
-                        "classes": ("collapse",),
+                        # "classes": ("collapse", "collapsed"),
+                        # TODO: Unhide tracking information when collapse is fixed
+                        "classes": ("hidden",),
                     },
                 ),
             ]
