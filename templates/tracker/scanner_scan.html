@@ -1,0 +1,44 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% block content %}
+  <div class="container mx-auto mt-10">
+    <h1 class="text-2xl font-bold mb-5">Scan QR Code - {{ scanner.name }}</h1>
+    <div id="qr-reader" class="w-full mx-auto max-w-[500px]"></div>
+    <div id="qr-reader-results" class="mt-5"></div>
+  </div>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script>
+    function onScanSuccess(decodedText, decodedResult) {
+      console.log(`Code scanned = ${decodedText}`, decodedResult);
+      // Handle the scanned code as you like, for example:
+      document.getElementById('qr-reader-results').innerText = decodedText;
+
+      // Send the data to your Django view
+      fetch('/scan/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ qr_data: decodedText, scanner_name: '{{ scanner.name }}' })
+      })
+      .then(response => response.text())
+      .then(data => {
+        document.getElementById('qr-reader-results').innerText = data;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('qr-reader-results').innerText = 'Error scanning QR code.';
+      });
+    }
+
+    function onScanFailure(error) {
+      console.warn(`Code scan error = ${error}`);
+    }
+
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+      "qr-reader", { fps: 10, qrbox: 250 }
+    );
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+  </script>
+{% endblock content %}

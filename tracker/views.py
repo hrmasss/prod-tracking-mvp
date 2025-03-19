@@ -1,14 +1,22 @@
 import json
-from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
 from tracker.models import MaterialPiece, Bundle, Scanner, ScanEvent
 
 
-@csrf_exempt
-@login_required
 def scan_qr(request):
+    scanners = Scanner.objects.all()
+    return render(request, "tracker/scan_qr.html", {"scanners": scanners})
+
+
+def scanner_scan(request, scanner_id):
+    scanner = get_object_or_404(Scanner, pk=scanner_id)
+    return render(request, "tracker/scanner_scan.html", {"scanner": scanner})
+
+
+@csrf_exempt
+def scan_qr_data(request):
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
         qr_data = data.get("qr_data")
@@ -19,33 +27,27 @@ def scan_qr(request):
         except Scanner.DoesNotExist:
             return HttpResponse("Scanner not found", status=400)
 
-        if qr_data.startswith("material_piece:"):
-            piece_id = qr_data.split(":")[1]
+        if qr_data.startswith("1"):
             try:
-                piece = MaterialPiece.objects.get(pk=piece_id)
-                # Record the scan event for the material piece
+                piece = MaterialPiece.objects.get(qr_code=qr_data)
                 ScanEvent.objects.create(scanner=scanner, material_piece=piece)
                 return HttpResponse(
                     f"Material Piece {piece.name} scanned by {scanner.name}"
                 )
             except MaterialPiece.DoesNotExist:
                 return HttpResponse("Material Piece not found", status=404)
-        elif qr_data.startswith("bundle:"):
-            bundle_id = qr_data.split(":")[1]
+        elif qr_data.startswith("2"):
             try:
-                bundle = Bundle.objects.get(pk=bundle_id)
-                # Record the scan event for the bundle
+                bundle = Bundle.objects.get(qr_code=qr_data)
                 ScanEvent.objects.create(scanner=scanner, bundle=bundle)
-                return HttpResponse(f"Bundle {bundle.name} scanned by {scanner.name}")
+                return HttpResponse(f"Bundle {bundle.pk} scanned by {scanner.name}")
             except Bundle.DoesNotExist:
                 return HttpResponse("Bundle not found", status=404)
         else:
             return HttpResponse("Invalid QR code", status=400)
-    else:
-        return render(request, "tracker/scan_qr.html")
+    return HttpResponse("Invalid request", status=400)
 
 
-@login_required
 def dashboard(request):
     total_pieces = MaterialPiece.objects.count()
     total_bundles = Bundle.objects.count()
