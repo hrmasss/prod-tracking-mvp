@@ -2,7 +2,7 @@ import json
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404
-from tracker.models import MaterialPiece, Bundle, Scanner, ScanEvent
+from tracker.models import MaterialPiece, Bundle, Scanner, ScanEvent, ProductionBatch
 
 
 def scan_qr(request):
@@ -71,12 +71,25 @@ def scan_qr_data(request):
 
 
 def dashboard(request):
-    total_pieces = MaterialPiece.objects.count()
-    total_bundles = Bundle.objects.count()
-    total_scan_events = ScanEvent.objects.count()
-    latest_scan_events = ScanEvent.objects.order_by("-scan_time")[:10]
+    production_batches = ProductionBatch.objects.all()
+    batch_id = request.GET.get("batch_id")
+    selected_batch = None
+
+    if batch_id:
+        selected_batch = get_object_or_404(ProductionBatch, pk=batch_id)
+        total_pieces = MaterialPiece.objects.filter(style=selected_batch.style).count()
+        total_bundles = Bundle.objects.filter(production_batch=selected_batch).count()
+        total_scan_events = ScanEvent.objects.count()
+        latest_scan_events = ScanEvent.objects.order_by("-scan_time")[:10]
+    else:
+        total_pieces = 0
+        total_bundles = 0
+        total_scan_events = 0
+        latest_scan_events = []
 
     context = {
+        "production_batches": production_batches,
+        "selected_batch": selected_batch,
         "total_pieces": total_pieces,
         "total_bundles": total_bundles,
         "total_scan_events": total_scan_events,

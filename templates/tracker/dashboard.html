@@ -1,43 +1,64 @@
 {% extends "layouts/base.html" %}
+{% load static %}
 {% block content %}
   <div class="container mx-auto mt-10">
     <h1 class="text-2xl font-bold mb-5">Dashboard</h1>
+    <!-- Production Batch List -->
+    <h2 class="text-lg font-semibold mb-2">Active Production Batches</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-      <div class="bg-white shadow-md rounded-md p-5">
-        <h2 class="text-lg font-semibold mb-2">Total Material Pieces</h2>
-        <p class="text-3xl">{{ total_pieces }}</p>
-      </div>
-      <div class="bg-white shadow-md rounded-md p-5">
-        <h2 class="text-lg font-semibold mb-2">Total Bundles</h2>
-        <p class="text-3xl">{{ total_bundles }}</p>
-      </div>
-      <div class="bg-white shadow-md rounded-md p-5">
-        <h2 class="text-lg font-semibold mb-2">Total Scan Events</h2>
-        <p class="text-3xl">{{ total_scan_events }}</p>
-      </div>
+      {% for batch in production_batches %}
+        <a href="{% url 'dashboard' %}?batch_id={{ batch.id }}"
+           class="bg-white shadow-md rounded-md p-5 hover:bg-gray-100 transition duration-200">
+          <h3 class="text-md font-semibold mb-2">{{ batch.style }} - Batch {{ batch.batch_number }}</h3>
+        </a>
+      {% empty %}
+        <p>No active production batches.</p>
+      {% endfor %}
     </div>
-    <div class="bg-white shadow-md rounded-md p-5">
-      <h2 class="text-lg font-semibold mb-2">Latest Scan Events</h2>
-      <table class="table-auto w-full">
-        <thead>
-          <tr>
-            <th class="px-4 py-2">Scanner</th>
-            <th class="px-4 py-2">Material Piece</th>
-            <th class="px-4 py-2">Bundle</th>
-            <th class="px-4 py-2">Scan Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for event in latest_scan_events %}
+    <!-- Dashboard Content (Conditional) -->
+    {% if selected_batch %}
+      <h2 class="text-lg font-semibold mb-2">
+        Production Batch: {{ selected_batch.style }} - Batch {{ selected_batch.batch_number }}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+        <div class="bg-white shadow-md rounded-md p-5">
+          <h2 class="text-lg font-semibold mb-2">Total Material Pieces</h2>
+          <p class="text-3xl">{{ total_pieces }}</p>
+        </div>
+        <div class="bg-white shadow-md rounded-md p-5">
+          <h2 class="text-lg font-semibold mb-2">Total Bundles</h2>
+          <p class="text-3xl">{{ total_bundles }}</p>
+        </div>
+        <div class="bg-white shadow-md rounded-md p-5">
+          <h2 class="text-lg font-semibold mb-2">Total Scan Events</h2>
+          <p class="text-3xl">{{ total_scan_events }}</p>
+        </div>
+      </div>
+      <div class="bg-white shadow-md rounded-md p-5">
+        <h2 class="text-lg font-semibold mb-2">Latest Scan Events</h2>
+        <table class="table-auto w-full">
+          <thead>
             <tr>
-              <td class="border px-4 py-2">{{ event.scanner }}</td>
-              <td class="border px-4 py-2">{{ event.material_piece }}</td>
-              <td class="border px-4 py-2">{{ event.bundle }}</td>
-              <td class="border px-4 py-2">{{ event.scan_time }}</td>
+              <th class="px-4 py-2">Scanner</th>
+              <th class="px-4 py-2">Material Piece</th>
+              <th class="px-4 py-2">Bundle</th>
+              <th class="px-4 py-2">Scan Time</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {% for event in latest_scan_events %}
+              <tr>
+                <td class="border px-4 py-2">{{ event.scanner }}</td>
+                <td class="border px-4 py-2">{{ event.material_piece }}</td>
+                <td class="border px-4 py-2">{{ event.bundle }}</td>
+                <td class="border px-4 py-2">{{ event.scan_time }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>Select a production batch to view its dashboard.</p>
+    {% endif %}
   </div>
 {% endblock %}
