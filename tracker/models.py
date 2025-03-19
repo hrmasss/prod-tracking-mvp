@@ -33,18 +33,32 @@ class Color(BaseModel):
 
 
 class Style(BaseModel):
-    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="styles")
-    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="styles")
     style_name = models.CharField(max_length=100)
-    buyer_contract_number = models.CharField(max_length=200, blank=True, null=True)
-    sizes = models.ManyToManyField(Size, related_name="styles", blank=True)
-    colors = models.ManyToManyField(Color, related_name="styles", blank=True)
 
     def __str__(self):
         return f"{self.buyer} - {self.season} - {self.style_name}"
 
     class Meta:
         unique_together = ("buyer", "season", "style_name")
+
+
+class Order(BaseModel):
+    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="orders")
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="styles")
+    style = models.ForeignKey(
+        Style, on_delete=models.CASCADE, related_name="order_items"
+    )
+    order_number = models.CharField(max_length=200, null=True, blank=True)
+    delivery_date = models.DateField()
+
+
+class OrderItem(BaseModel):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    size = models.ForeignKey(Size, on_delete=models.CASCADE, related_name="order_items")
+    color = models.ForeignKey(
+        Color, on_delete=models.CASCADE, related_name="order_items"
+    )
+    quantity = models.PositiveIntegerField()
 
 
 class MaterialType(BaseModel):
@@ -201,7 +215,7 @@ class Defect(BaseModel):
     severity_level = models.PositiveSmallIntegerField(default=1)
 
     def __str__(self):
-        return f"{self.name} ({self.category})"
+        return f"{self.name} ({self.type})"
 
     class Meta:
         unique_together = ("type", "name")
