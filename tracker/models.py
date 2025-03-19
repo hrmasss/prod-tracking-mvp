@@ -47,9 +47,49 @@ class MaterialPiece(BaseModel):
         return f"{self.style} - {self.name}"
 
 
+class ProductionLine(BaseModel):
+    name = models.CharField(max_length=100, unique=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ProductionBatch(BaseModel):
+    style = models.ForeignKey(
+        Style, on_delete=models.CASCADE, related_name="production_batches"
+    )
+    production_lines = models.ManyToManyField(
+        ProductionLine, related_name="production_batches", blank=True
+    )
+    batch_number = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.style} - Batch {self.batch_number}"
+
+
+class BundlePreset(BaseModel):
+    name = models.CharField(max_length=255)
+    style = models.ForeignKey(
+        Style, on_delete=models.CASCADE, related_name="bundle_presets"
+    )
+    pieces = models.ManyToManyField(MaterialPiece, related_name="bundle_presets")
+
+    def __str__(self):
+        return self.name
+
+
 class Bundle(BaseModel):
-    name = models.CharField(max_length=100)
-    pieces = models.ManyToManyField(MaterialPiece, related_name="bundles", blank=True)
+    production_batch = models.ForeignKey(
+        ProductionBatch, on_delete=models.CASCADE, related_name="bundles"
+    )
+    preset = models.ForeignKey(
+        BundlePreset,
+        on_delete=models.CASCADE,
+        related_name="bundles",
+        blank=True,
+        null=True,
+    )
     qr_code = models.CharField(max_length=255, unique=True, blank=True, null=True)
     qr_image = OptimizedImageField(
         upload_to=bundle_qr_image_upload_path,
@@ -59,15 +99,7 @@ class Bundle(BaseModel):
     )
 
     def __str__(self):
-        return self.name
-
-
-class ProductionLine(BaseModel):
-    name = models.CharField(max_length=100, unique=True)
-    location = models.CharField(max_length=255, blank=True, null=True)
-
-    def __str__(self):
-        return self.name
+        return f"Bundle {self.pk}"
 
 
 class Scanner(BaseModel):

@@ -75,7 +75,7 @@ def generate_material_qr_code(instance):
         img.save(buffer, format="PNG")
 
         # Create a unique filename
-        filename = f"{instance.name.replace(' ', '_')}_qr.png"
+        filename = f"{instance.qr_code}.png"
 
         # Save the image to the ImageField
         instance.qr_image.save(
@@ -112,7 +112,7 @@ def generate_bundle_qr_code(instance):
         img.save(buffer, format="PNG")
 
         # Create a unique filename
-        filename = f"{instance.name.replace(' ', '_')}_qr.png"
+        filename = f"{instance.qr_code}.png"
 
         # Save the image to the ImageField
         instance.qr_image.save(

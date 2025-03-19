@@ -86,7 +86,14 @@ UNFOLD_CONFIG = {
                     {
                         "title": "Bundles",
                         "icon": "package",
-                        "link": reverse_lazy("admin:tracker_bundle_changelist"),
+                        "link": reverse_lazy("admin:tracker_bundlepreset_changelist"),
+                    },
+                    {
+                        "title": "Production",
+                        "icon": "handyman",
+                        "link": reverse_lazy(
+                            "admin:tracker_productionbatch_changelist"
+                        ),
                     },
                     {
                         "title": "Production Lines",
