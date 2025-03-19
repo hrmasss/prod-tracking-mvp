@@ -4,5 +4,6 @@ module.exports = {
         "./templates/admin/**/*.{html,js,py}",
         "./common/**/admin.py",
         "./users/**/admin.py",
+        "./tracker/**/admin.py",
     ],
 };

@@ -21,9 +21,37 @@ class MaterialPieceInline(BaseInlineAdmin):
 
     def qr_image_display(self, obj):
         if obj.pk and obj.qr_image:
+            filename = f"{obj.style.buyer.name}_{obj.style.season.name}_{obj.style.style_number}_{obj.name}".replace(
+                " ", "_"
+            )
             return format_html(
-                '<a href="{}" target="_blank"><img src="{}" width="100" /><br>View QR Code</a>',
+                '<div style="display: flex; flex-direction: column; align-items: flex-start;">'
+                "<div>QR Code: {}</div>"
+                '<div style="display: flex; align-items: center;">'
+                '<a href="{}" target="_blank"><img src="{}" width="100" /></a>'
+                '<div style="margin-left: 10px;">'
+                '<a href="{}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" download="{}.png">Download</a>'
+                '<button onclick="printQrCode(\'{}\')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print</button>'
+                "</div>"
+                "</div>"
+                "<script>"
+                "function printQrCode(imageUrl) {{"
+                "  const printWindow = window.open('', '_blank');"
+                "  printWindow.document.write('<html><head><title>Print QR Code</title></head><body>');"
+                "  printWindow.document.write('<img src=\\\"' + imageUrl + '\\\" style=\\\"max-width: 100%;\\\">');"
+                "  printWindow.document.write('</body></html>');"
+                "  printWindow.document.close();"
+                "  printWindow.focus();"
+                "  printWindow.print();"
+                "  printWindow.close();"
+                "}}"
+                "</script>"
+                "</div>",
+                obj.qr_code,
                 obj.qr_image.url,
+                obj.qr_image.url,
+                obj.qr_image.url,
+                filename,
                 obj.qr_image.url,
             )
         return "QR code will be generated after saving"
@@ -72,9 +100,37 @@ class MaterialPieceAdmin(BaseModelAdmin):
 
     def qr_image_display(self, obj):
         if obj.qr_image:
+            filename = f"{obj.style.buyer.name}_{obj.style.season.name}_{obj.style.style_number}_{obj.name}".replace(
+                " ", "_"
+            )
             return format_html(
-                '<a href="{}" target="_blank"><img src="{}" width="100" /><br>View QR Code</a>',
+                '<div style="display: flex; flex-direction: column; align-items: flex-start;">'
+                "<div>QR Code: {}</div>"
+                '<div style="display: flex; align-items: center;">'
+                '<a href="{}" target="_blank"><img src="{}" width="100" /></a>'
+                '<div style="margin-left: 10px;">'
+                '<a href="{}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" download="{}.png">Download</a>'
+                '<button onclick="printQrCode(\'{}\')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print</button>'
+                "</div>"
+                "</div>"
+                "<script>"
+                "function printQrCode(imageUrl) {{"
+                "  const printWindow = window.open('', '_blank');"
+                "  printWindow.document.write('<html><head><title>Print QR Code</title></head><body>');"
+                "  printWindow.document.write('<img src=\\\"' + imageUrl + '\\\" style=\\\"max-width: 100%;\\\">');"
+                "  printWindow.document.write('</body></html>');"
+                "  printWindow.document.close();"
+                "  printWindow.focus();"
+                "  printWindow.print();"
+                "  printWindow.close();"
+                "}}"
+                "</script>"
+                "</div>",
+                obj.qr_code,
                 obj.qr_image.url,
+                obj.qr_image.url,
+                obj.qr_image.url,
+                filename,
                 obj.qr_image.url,
             )
         return "No QR code available"
@@ -91,9 +147,42 @@ class BundleAdmin(BaseModelAdmin):
 
     def qr_image_display(self, obj):
         if obj.qr_image:
+            filename = "bundle"
+            if obj.pieces.exists():
+                # Get style from the first material piece
+                style = obj.pieces.first().style
+                filename = f"{style.buyer.name}_{style.season.name}_{style.style_number}_{obj.name}".replace(
+                    " ", "_"
+                )
+
             return format_html(
-                '<a href="{}" target="_blank"><img src="{}" width="100" /><br>View QR Code</a>',
+                '<div style="display: flex; flex-direction: column; align-items: flex-start;">'
+                "<div>QR Code: {}</div>"
+                '<div style="display: flex; align-items: center;">'
+                '<a href="{}" target="_blank"><img src="{}" width="100" /></a>'
+                '<div style="margin-left: 10px;">'
+                '<a href="{}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" download="{}.png">Download</a>'
+                '<button onclick="printQrCode(\'{}\')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print</button>'
+                "</div>"
+                "</div>"
+                "<script>"
+                "function printQrCode(imageUrl) {{"
+                "  const printWindow = window.open('', '_blank');"
+                "  printWindow.document.write('<html><head><title>Print QR Code</title></head><body>');"
+                "  printWindow.document.write('<img src=\\\"' + imageUrl + '\\\" style=\\\"max-width: 100%;\\\">');"
+                "  printWindow.document.write('</body></html>');"
+                "  printWindow.document.close();"
+                "  printWindow.focus();"
+                "  printWindow.print();"
+                "  printWindow.close();"
+                "}}"
+                "</script>"
+                "</div>",
+                obj.qr_code,
                 obj.qr_image.url,
+                obj.qr_image.url,
+                obj.qr_image.url,
+                filename,
                 obj.qr_image.url,
             )
         return "No QR code available"
