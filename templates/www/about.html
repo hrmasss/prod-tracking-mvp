@@ -1,0 +1,24 @@
+{% extends "layouts/base.html" %}
+{% block title %}
+  About Humana Apparels
+{% endblock title %}
+{% block meta_description %}
+  <meta name="description" content="About Humana Apparels Pvt. Ltd.">
+{% endblock meta_description %}
+{% block content %}
+  <!-- About Section -->
+  <section data-taos-offset="300"
+           class="delay-[300ms] duration-[300ms] taos:translate-y-[-100%] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/about_section.html" %}
+  </section>
+  <!-- Team Section -->
+  <section data-taos-offset="300"
+           class="delay-[300ms] duration-[300ms] taos:scale-[0.8] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/team_section.html" %}
+  </section>
+  <!-- Faq Section -->
+  <section data-taos-offset="300"
+           class="delay-[300ms] duration-[300ms] taos:translate-x-[100%] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/faq_section.html" %}
+  </section>
+{% endblock content %}

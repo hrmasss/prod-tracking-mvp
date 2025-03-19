@@ -1,0 +1,20 @@
+{
+    "name": "prod-tracking-qr",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "tailwind:admin": "npx tailwindcss -i common/static/css/admin.tailwind.css -o common/static/css/admin.styles.css --minify --watch --config tailwind.admin.config.js",
+        "tailwind:public": "npx tailwindcss -i common/static/css/public.tailwind.css -o common/static/css/public.styles.css --minify --watch --config tailwind.public.config.js",
+        "dev": "concurrently \"npm run tailwind:admin\" \"npm run tailwind:public\""
+    },
+    "devDependencies": {
+        "@tailwindcss/forms": "^0.5.10",
+        "@tailwindcss/typography": "^0.5.16",
+        "concurrently": "^9.1.2",
+        "tailwindcss": "^3.4.17"
+    },
+    "dependencies": {
+        "preline": "^2.7.0"
+    }
+}

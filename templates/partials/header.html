@@ -1,0 +1,87 @@
+{% load static %}
+<header id="main-header"
+        class="sticky top-0 flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full bg-background/80 backdrop-blur-sm py-1">
+  <nav class="relative max-w-7xl w-full md:flex md:items-center md:justify-between md:gap-3 mx-auto px-4 sm:px-6 lg:px-8 py-2">
+    <!-- Logo w/ Collapse Button -->
+    <div class="flex items-center justify-between">
+      <a class="flex-none font-semibold text-xl focus:outline-none focus:opacity-80"
+         href="{% url 'home' %}"
+         aria-label="Humana Apparels Pvt. Ltd.">
+        <img class="h-12 dark:brightness-200"
+             src="{% static 'images/humana_logo.png' %}"
+             alt="Humana Apparels Pvt. Ltd.">
+      </a>
+      <!-- Collapse Button & Theme Switch (Mobile) -->
+      <div class="flex items-center md:hidden">
+        {% include "partials/theme_switch.html" %}
+        <div class="w-px h-6 bg-border/50 mr-3 ml-1"></div>
+        <!-- Collapse Button -->
+        <button type="button"
+                class="hs-collapse-toggle relative size-9 flex justify-center items-center text-sm font-semibold rounded-lg border border-border/30 hover:bg-card/10 focus:outline-none focus:bg-card/10 disabled:opacity-50 disabled:pointer-events-none"
+                id="hs-base-header-collapse"
+                data-hs-collapse="#hs-base-header">
+          <i class="ph ph-bold ph-list text-xl hs-collapse-open:hidden text-primary"></i>
+          <i class="ph ph-bold ph-x text-xl hidden hs-collapse-open:block text-red-500"></i>
+          <span class="sr-only">Toggle navigation</span>
+        </button>
+      </div>
+      <!-- End Collapse Button -->
+    </div>
+    <!-- End Logo w/ Collapse Button -->
+    <!-- Collapse -->
+    <div id="hs-base-header"
+         class="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow md:block"
+         aria-labelledby="hs-base-header-collapse">
+      <div class="overflow-hidden overflow-y-auto max-h-[calc(100dvh)]">
+        <div class="md:py-0 flex flex-col md:flex-row md:items-center md:justify-end gap-0.5 md:gap-1 font-medium py-4 text-foreground/80">
+          <!-- Home -->
+          <a class="p-2 flex items-center hover:text-primary"
+             href="{% url 'home' %}">
+            <i class="ph ph-duotone ph-house-line me-3 md:me-2 block md:hidden"></i>
+            Home
+          </a>
+          <!-- About -->
+          <a class="p-2 flex items-center hover:text-primary"
+             href="{% url "about" %}">
+            <i class="ph ph-duotone ph-info me-3 md:me-2 block md:hidden"></i>
+            About
+          </a>
+          <!-- Clients -->
+          <a class="p-2 flex items-center hover:text-primary"
+             href="{% url "customers" %}">
+            <i class="ph ph-duotone ph-users-three me-3 md:me-2 block md:hidden"></i>
+            Customers
+          </a>
+          <!-- Contact -->
+          <a class="p-2 flex items-center hover:text-primary"
+             href="{% url "contact" %}">
+            <i class="ph ph-duotone ph-phone me-3 md:me-2 block md:hidden"></i>
+            Contact
+          </a>
+          <!-- News/Blog -->
+          <a class="p-2 flex items-center hover:text-primary"
+             href="{% url "news" %}">
+            <i class="ph ph-duotone ph-newspaper me-3 md:me-2 block md:hidden"></i>
+            News
+          </a>
+          <!-- Divider & Theme Switch (Desktop) -->
+          <div class="flex items-center">
+            <div class="hidden md:block w-px h-6 bg-border/50 mx-4"></div>
+            <!-- Career -->
+            <a class="p-2 flex items-center hover:text-primary md:px-3 md:py-0.5 md:rounded-lg md:bg-primary md:text-accent md:hover:text-accent md:hover:bg-primary/90"
+               href="{% url "career" %}">
+              <i class="ph ph-duotone ph-briefcase me-3 md:me-2 block md:hidden"></i>
+              Career
+            </a>
+          </div>
+          <!-- Divider & Theme Switch (Desktop) -->
+          <div class="hidden md:flex md:items-center">
+            <div class="w-px h-6 bg-border/50 mx-4"></div>
+            {% include "partials/theme_switch.html" %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Collapse -->
+  </nav>
+</header>

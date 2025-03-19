@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "production-tracking-qr"
+version = "0.1.0"
+description = "Production Tracking QR"
+authors = ["Hojayfa Rahman <hojayfarahman@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.1.5"
+dj-database-url = "^2.3.0"
+django-cors-headers = "^4.6.0"
+python-dotenv = "^1.0.1"
+psycopg2-binary = "^2.9.10"
+django-safedelete = "^1.4.0"
+django-simple-history = "^3.8.0"
+django-auditlog = "^3.0.0"
+django-unfold = "^0.46.0"
+django-guardian = "^2.4.0"
+pytest = "^8.3.4"
+pytest-django = "^4.9.0"
+pytest-asyncio = "^0.25.2"
+faker = "^35.0.0"
+factory-boy = "^3.3.1"
+pytest-factoryboy = "^2.7.0"
+pillow = "^11.1.0"
+pillow-avif-plugin = "^1.4.6"
+requests = "^2.32.3"
+
+[tool.poetry.group.dev.dependencies]
+djlint = "^1.36.4"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = ["--reuse-db", "--ds=core.settings"]

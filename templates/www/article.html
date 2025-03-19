@@ -1,0 +1,10 @@
+{% extends "layouts/base.html" %}
+{% block title %}
+  {{ article.title }} - Humana Apparels News
+{% endblock title %}
+{% block meta_description %}
+  <meta name="description" content="{{ article.excerpt }}">
+{% endblock meta_description %}
+{% block content %}
+  {% include "partials/article_details.html" %}
+{% endblock content %}

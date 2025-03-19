@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+{% block content %}
+    <div class="p-4">
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-700">Evidence Documents</h2>
+            {% if cl.result_count == 0 %}<p class="text-gray-500 mt-2">No evidence documents found.</p>{% endif %}
+        </div>
+        {{ block.super }}
+    </div>
+{% endblock content %}

@@ -1,0 +1,19 @@
+{% extends "layouts/base.html" %}
+{% block title %}
+  Customers of Humana Apparels
+{% endblock title %}
+{% block meta_description %}
+  <meta name="description" content="Customers of Humana Apparels Pvt. Ltd.">
+{% endblock meta_description %}
+{% block content %}
+  <!-- Clients Section -->
+  <section data-taos-offset="300"
+           class="duration-[600ms] taos:translate-y-[-50%] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/clients_section.html" %}
+  </section>
+  <!-- Testimonials Section -->
+  <section data-taos-offset="300"
+           class="delay-[300ms] duration-[800ms] taos:scale-[0.9] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/testimonials_section.html" %}
+  </section>
+{% endblock content %}

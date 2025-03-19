@@ -1,0 +1,50 @@
+{% load static %}
+<footer class="mt-10 w-full max-w-7xl py-10 px-4 sm:px-6 lg:px-8 mx-auto border-t">
+  <!-- Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-5">
+    <div class="w-fit-content mx-auto">
+      <!-- Brand Logo/Name -->
+      <a class="flex-none text-xl font-semibold text-black focus:outline-none dark:text-white inline-flex items-center gap-x-2"
+         href="{% url "home" %}"
+         aria-label="Humana Apparels Pvt. Ltd.">
+        <img class="h-12"
+             src="{% static 'images/humana_logo.png' %}"
+             alt="Humana Apparels Pvt. Ltd.">
+      </a>
+    </div>
+    <!-- End Col -->
+    <!-- Navigation Links -->
+    <ul class="text-center text-lg font-medium">
+      <li class="inline-block relative pe-8 last:pe-0 last-of-type:before:hidden before:absolute before:top-1/2 before:end-3 before:-translate-y-1/2 before:content-['/'] before:text-foreground/40">
+        <a class="inline-flex gap-x-2 text-sm text-foreground/60 hover:text-primary focus:outline-none focus:text-primary"
+           href="{% url "home" %}">Home</a>
+      </li>
+      <li class="inline-block relative pe-8 last:pe-0 last-of-type:before:hidden before:absolute before:top-1/2 before:end-3 before:-translate-y-1/2 before:content-['/'] before:text-foreground/40">
+        <a class="inline-flex gap-x-2 text-sm text-foreground/60 hover:text-primary focus:outline-none focus:text-primary"
+           href="{% url "career" %}">Career</a>
+      </li>
+      <li class="inline-block relative pe-8 last:pe-0 last-of-type:before:hidden before:absolute before:top-1/2 before:end-3 before:-translate-y-1/2 before:content-['/'] before:text-foreground/40">
+        <a class="inline-flex gap-x-2 text-sm text-foreground/60 hover:text-primary focus:outline-none focus:text-primary"
+           href="{% url "news" %}">News</a>
+      </li>
+    </ul>
+    <!-- End Col -->
+    <!-- Social Icons -->
+    <div class="md:text-end space-x-2 text-xl w-fit-content mx-auto">
+      <a class="inline-flex justify-center items-center gap-x-2 rounded-full border border-transparent text-foreground/60 hover:bg-accent/30 focus:outline-none focus:bg-accent/30 p-1 hover:text-primary focus:text-primary"
+         href="#">
+        <i class="ph ph-duotone ph-facebook-logo"></i>
+      </a>
+      <a class="inline-flex justify-center items-center gap-x-2 rounded-full border border-transparent text-foreground/60 hover:bg-accent/30 focus:outline-none focus:bg-accent/30 p-1 hover:text-primary focus:text-primary"
+         href="#">
+        <i class="ph ph-duotone ph-twitter-logo"></i>
+      </a>
+      <a class="inline-flex justify-center items-center gap-x-2 rounded-full border border-transparent text-foreground/60 hover:bg-accent/30 focus:outline-none focus:bg-accent/30 p-1 hover:text-primary focus:text-primary"
+         href="#">
+        <i class="ph ph-duotone ph-instagram-logo"></i>
+      </a>
+    </div>
+    <!-- End Social Icons -->
+  </div>
+  <!-- End Grid -->
+</footer>

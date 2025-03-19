@@ -1,0 +1,18 @@
+<div class="max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
+  <div class="max-w-2xl mx-auto text-center mb-10 lg:mb-14">
+    <h2 class="text-2xl font-bold md:text-4xl md:leading-tight text-foreground">Stay up to date</h2>
+    <p class="mt-1 text-foreground/60">Read the latest news and updates from our blog</p>
+  </div>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for article in articles %}
+      {% include "partials/article_card.html" %}
+    {% endfor %}
+  </div>
+  <div class="mt-12 text-center">
+    <a class="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-primary bg-accent hover:bg-accent/90 rounded-full transition"
+       href="{% url 'news' %}">
+      View all articles
+      <i class="ph ph-caret-right"></i>
+    </a>
+  </div>
+</div>

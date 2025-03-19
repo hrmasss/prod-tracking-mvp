@@ -1,0 +1,36 @@
+{% extends "layouts/base.html" %}
+{% block title %}
+  Welcome to Humana Apparels
+{% endblock title %}
+{% block meta_description %}
+  <meta name="description" content="Home of Humana Apparels Pvt. Ltd.">
+{% endblock meta_description %}
+{% block content %}
+  <!-- Hero Carousel -->
+  {% include "partials/hero_carousel.html" %}
+  <!-- Introduction -->
+  <section data-taos-offset="300"
+           class="delay-[200ms] duration-[300ms] taos:translate-x-[-100%] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/introduction_section.html" %}
+  </section>
+  <!-- Overview -->
+  <section data-taos-offset="300"
+           class="delay-[200ms] duration-[300ms] taos:translate-x-[100%] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/overview_section.html" %}
+  </section>
+  <!-- Services/Products Section -->
+  <section data-taos-offset="300"
+           class="delay-[200ms] duration-[300ms] taos:scale-[0.6] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/services_section.html" %}
+  </section>
+  <!-- Featured Clients -->
+  <section data-taos-offset="300"
+           class="delay-[200ms] duration-[300ms] taos:scale-[1.2] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/featured_clients_section.html" %}
+  </section>
+  <!-- News Section -->
+  <section data-taos-offset="300"
+           class="duration-[1000ms] ease-[cubic-bezier(.47,0,.745,.715)] taos:opacity-0 [animation-iteration-count:infinite]">
+    {% include "partials/featured_news_section.html" %}
+  </section>
+{% endblock content %}
