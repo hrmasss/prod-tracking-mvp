@@ -32,9 +32,8 @@ def create_buyers():
 
 
 def create_seasons():
-    seasons = ["Spring/Summer", "Fall/Winter", "All Year"]
-    for season in seasons:
-        SeasonFactory.create(name=season)
+    for _ in range(5):
+        SeasonFactory.create()
     print("📅 Seasons created.")
 
 
@@ -101,25 +100,25 @@ def create_operations():
 
 def create_production_lines():
     production_lines = [
-        {"name": "Cutting Line 1", "operation_type": "CUTTING", "location": "Area A"},
+        {"name": "Cutting Line 1", "operation_type": "CUTTING", "location": "8th Floor - A"},
         {
             "name": "Finishing Line 1",
             "operation_type": "FINISHING",
-            "location": "Area B",
+            "location": "8th Floor - B",
         },
-        {"name": "Sewing Line 1", "operation_type": "SEWING", "location": "Area C"},
-        {"name": "Sewing Line 2", "operation_type": "SEWING", "location": "Area C"},
-        {"name": "Sewing Line 3", "operation_type": "SEWING", "location": "Area C"},
-        {"name": "Sewing Line 4", "operation_type": "SEWING", "location": "Area C"},
-        {"name": "Sewing Line 5", "operation_type": "SEWING", "location": "Area C"},
-        {"name": "Sewing Line 6", "operation_type": "SEWING", "location": "Area C"},
-        {"name": "Sewing Line 7", "operation_type": "SEWING", "location": "Area C"},
+        {"name": "Sewing Line 1", "operation_type": "SEWING", "location": "8th Floor - C"},
+        {"name": "Sewing Line 2", "operation_type": "SEWING", "location": "8th Floor - C"},
+        {"name": "Sewing Line 3", "operation_type": "SEWING", "location": "8th Floor - C"},
+        {"name": "Sewing Line 4", "operation_type": "SEWING", "location": "8th Floor - C"},
+        {"name": "Sewing Line 5", "operation_type": "SEWING", "location": "8th Floor - C"},
+        {"name": "Sewing Line 6", "operation_type": "SEWING", "location": "8th Floor - C"},
+        {"name": "Sewing Line 7", "operation_type": "SEWING", "location": "8th Floor - C"},
         {
             "name": "Downfilling Line 1",
             "operation_type": "DOWNFILLING",
-            "location": "Area D",
+            "location": "8th Floor - D",
         },
-        {"name": "Quilting Line 1", "operation_type": "QUILTING", "location": "Area E"},
+        {"name": "Quilting Line 1", "operation_type": "QUILTING", "location": "8th Floor - E"},
     ]
     for production_line in production_lines:
         ProductionLineFactory.create(**production_line)
