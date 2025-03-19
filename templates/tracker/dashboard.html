@@ -12,7 +12,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
       {% for batch in production_batches %}
         <a href="{% url 'dashboard' %}?batch_id={{ batch.id }}"
-           class="bg-white shadow-md rounded-md p-5 hover:bg-gray-100 transition duration-200 flex flex-col justify-between">
+           class="bg-white shadow-md rounded-md p-5 hover:bg-blue-50 transition duration-200 flex flex-col justify-between">
           <div>
             <h3 class="text-md font-semibold mb-2">{{ batch.style }} - Batch {{ batch.batch_number }}</h3>
           </div>
@@ -32,12 +32,12 @@
         Production Batch: {{ selected_batch.style }} - Batch {{ selected_batch.batch_number }}
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-        <div class="bg-white shadow-md rounded-md p-5">
+        <div class="bg-white shadow-md rounded-md p-5 border-l-4 border-blue-500">
           <h2 class="text-lg font-semibold mb-2">
             <i class="ph-duotone ph-squares-plus text-blue-500 mr-1"></i>
             Total Material Pieces
           </h2>
-          <p class="text-3xl">{{ total_pieces }}</p>
+          <p class="text-3xl text-blue-700">{{ total_pieces }}</p>
         </div>
       </div>
     {% endif %}
@@ -48,12 +48,12 @@
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
       {% for stat in production_line_stats %}
-        <div class="bg-white shadow-md rounded-md p-5">
+        <div class="bg-white shadow-md rounded-md p-5 border-l-4 border-green-500">
           <h3 class="text-md font-semibold mb-2 flex items-center">
             <i class="ph-duotone ph-factory text-green-500 mr-1"></i>
             {{ stat.line.name }}
           </h3>
-          <p>
+          <p class="text-green-700">
             <i class="ph-duotone ph-sign-in text-gray-700 mr-1"></i>
             Input Pieces: {{ stat.input_pieces }}
           </p>
