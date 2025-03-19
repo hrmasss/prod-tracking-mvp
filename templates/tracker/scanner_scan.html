@@ -14,7 +14,7 @@
       document.getElementById('qr-reader-results').innerText = decodedText;
 
       // Send the data to your Django view
-      fetch('/scan/', {
+      fetch('/scan_data/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

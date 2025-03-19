@@ -67,3 +67,7 @@ yarn-error.log
 # Environment 
 .env
 .env.local
+
+# Selftest files
+selftest-cert.crt
+selftest-cert.key
