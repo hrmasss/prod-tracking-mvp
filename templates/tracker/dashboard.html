@@ -1,15 +1,25 @@
 {% extends "layouts/base.html" %}
-{% load static %}
+{% block header_title %}
+  Production Dashboard
+{% endblock header_title %}
 {% block content %}
   <div class="container mx-auto mt-10">
-    <h1 class="text-2xl font-bold mb-5">Dashboard</h1>
     <!-- Production Batch List -->
-    <h2 class="text-lg font-semibold mb-2">Active Production Batches</h2>
+    <h2 class="text-lg font-semibold mb-2">
+      <i class="ph-duotone ph-scissors text-gray-600 mr-1"></i>
+      Active Production Batches
+    </h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
       {% for batch in production_batches %}
         <a href="{% url 'dashboard' %}?batch_id={{ batch.id }}"
-           class="bg-white shadow-md rounded-md p-5 hover:bg-gray-100 transition duration-200">
-          <h3 class="text-md font-semibold mb-2">{{ batch.style }} - Batch {{ batch.batch_number }}</h3>
+           class="bg-white shadow-md rounded-md p-5 hover:bg-gray-100 transition duration-200 flex flex-col justify-between">
+          <div>
+            <h3 class="text-md font-semibold mb-2">{{ batch.style }} - Batch {{ batch.batch_number }}</h3>
+          </div>
+          <div class="mt-2 text-sm text-gray-500">
+            <i class="ph-duotone ph-calendar-check mr-1"></i>
+            Updated: {{ batch.updated_at|date:"F d, Y" }}
+          </div>
         </a>
       {% empty %}
         <p>No active production batches.</p>
@@ -18,22 +28,35 @@
     <!-- Dashboard Content (Conditional) -->
     {% if selected_batch %}
       <h2 class="text-lg font-semibold mb-2">
+        <i class="ph-duotone ph-info text-gray-600 mr-1"></i>
         Production Batch: {{ selected_batch.style }} - Batch {{ selected_batch.batch_number }}
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
         <div class="bg-white shadow-md rounded-md p-5">
-          <h2 class="text-lg font-semibold mb-2">Total Material Pieces</h2>
+          <h2 class="text-lg font-semibold mb-2">
+            <i class="ph-duotone ph-squares-plus text-blue-500 mr-1"></i>
+            Total Material Pieces
+          </h2>
           <p class="text-3xl">{{ total_pieces }}</p>
         </div>
       </div>
     {% endif %}
     <!-- Production Line Stats -->
-    <h2 class="text-lg font-semibold mb-2">Production Line Statistics</h2>
+    <h2 class="text-lg font-semibold mb-2">
+      <i class="ph-duotone ph-line-segments text-gray-600 mr-1"></i>
+      Production Line Statistics
+    </h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
       {% for stat in production_line_stats %}
         <div class="bg-white shadow-md rounded-md p-5">
-          <h3 class="text-md font-semibold mb-2">{{ stat.line.name }}</h3>
-          <p>Input Pieces: {{ stat.input_pieces }}</p>
+          <h3 class="text-md font-semibold mb-2 flex items-center">
+            <i class="ph-duotone ph-factory text-green-500 mr-1"></i>
+            {{ stat.line.name }}
+          </h3>
+          <p>
+            <i class="ph-duotone ph-sign-in text-gray-700 mr-1"></i>
+            Input Pieces: {{ stat.input_pieces }}
+          </p>
         </div>
       {% endfor %}
     </div>

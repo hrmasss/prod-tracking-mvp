@@ -1,10 +1,13 @@
 {% extends "layouts/base.html" %}
-{% load static %}
+{% block header_title %}
+  Scan QR Code - {{ scanner.name }}
+{% endblock header_title %}
 {% block content %}
   <div class="container mx-auto mt-10">
-    <h1 class="text-2xl font-bold mb-5">Scan QR Code - {{ scanner.name }}</h1>
-    <div id="qr-reader" class="w-full mx-auto max-w-[500px]"></div>
-    <div id="qr-reader-results" class="mt-5"></div>
+    <div class="flex justify-center">
+      <div id="qr-reader" class="w-full mx-auto max-w-[500px]"></div>
+    </div>
+    <div id="qr-reader-results" class="mt-5 text-center"></div>
   </div>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script>
