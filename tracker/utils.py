@@ -149,7 +149,7 @@ def render_qr_code(obj):
             '<a href="{}" target="_blank"><img src="{}" width="100" /></a>'
             '<div style="margin-left: 10px;">'
             '<a href="{}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" download="{}.png">Download</a>'
-            '<button onclick="printQrCode(\'{}\')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print</button>'
+            '<button type="button" onclick="printQrCode(\'{}\')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print</button>'
             "</div>"
             "</div>"
             "<script>"
@@ -180,7 +180,7 @@ def render_combined_qr_codes(pieces):
     for piece in pieces:
         if piece.qr_image:
             qr_code_images.append(
-                f'<img src="{piece.qr_image.url}" style="width: 100px; margin: 5px;" />'
+                f'<img src="{piece.qr_image.url}" style="width: 200px; height: 200px; margin: 5px;" />'
             )
         else:
             qr_code_images.append("<div>No QR code available</div>")
@@ -191,11 +191,16 @@ def render_combined_qr_codes(pieces):
     <head>
         <title>Combined QR Codes</title>
         <style>
+            @media print {{
+                body {{
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: flex-start;
+                    align-items: flex-start;
+                }}
+            }}
             body {{
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: flex-start;
-                align-items: flex-start;
+                display: none;
             }}
             img {{
                 width: 200px;
@@ -211,5 +216,16 @@ def render_combined_qr_codes(pieces):
     """
 
     return format_html(
-        f'<iframe srcdoc="{combined_html}" width="100%" height="500px"></iframe>'
+        """
+        <button type="button" onclick="printCombinedQrCodes()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print All Pieces</button>
+        <iframe id="qrCodeFrame" srcdoc="{}" width="0" height="0" style="display:none;"></iframe>
+        <script>
+            function printCombinedQrCodes() {{
+                var qrCodeFrame = document.getElementById('qrCodeFrame');
+                qrCodeFrame.contentWindow.focus();
+                qrCodeFrame.contentWindow.print();
+            }}
+        </script>
+        """,
+        combined_html,
     )

@@ -204,8 +204,7 @@ class BundleAdmin(BaseModelAdmin):
         "quantity",
         "qr_code",
         "qr_image_display",
-        "created_at",
-        "updated_at",
+        "print_pieces_qr_codes",
     )
     list_filter = ("production_batch", "material", "size", "color")
     readonly_fields = ["qr_code", "qr_image_display", "print_pieces_qr_codes"]
@@ -227,7 +226,7 @@ class BundleAdmin(BaseModelAdmin):
 
     def print_pieces_qr_codes(self, obj):
         pieces = obj.material_pieces.all()
-        return render_combined_qr_codes(pieces)  # Use the new function
+        return render_combined_qr_codes(pieces)
 
     print_pieces_qr_codes.short_description = "Print All Pieces QR Codes"
 

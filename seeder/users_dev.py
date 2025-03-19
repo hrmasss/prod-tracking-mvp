@@ -74,7 +74,9 @@ def create_departments_and_roles():
         print("Role 'Operator' already exists.")
 
 
-def seed_users():
+def seed_users(full=True):
     create_superuser()
-    create_departments_and_roles()
-    create_staff_users()
+
+    if full:
+        create_departments_and_roles()
+        create_staff_users()

@@ -36,7 +36,7 @@ class Style(BaseModel):
     name = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"{self.buyer} - {self.season} - {self.name}"
+        return f"{self.name}"
 
 
 class Order(BaseModel):

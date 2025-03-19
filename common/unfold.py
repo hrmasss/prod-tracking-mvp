@@ -79,6 +79,23 @@ UNFOLD_CONFIG = {
                 "collapsible": True,
                 "items": [
                     {
+                        "title": "Production Targets",
+                        "icon": "assessment",
+                        "link": reverse_lazy(
+                            "admin:tracker_productiontarget_changelist"
+                        ),
+                    },
+                    {
+                        "title": "Orders",
+                        "icon": "shopping_cart",
+                        "link": reverse_lazy("admin:tracker_order_changelist"),
+                    },
+                    {
+                        "title": "Materials",
+                        "icon": "inventory_2",
+                        "link": reverse_lazy("admin:tracker_material_changelist"),
+                    },
+                    {
                         "title": "Styles",
                         "icon": "apparel",
                         "link": reverse_lazy("admin:tracker_style_changelist"),
@@ -96,19 +113,9 @@ UNFOLD_CONFIG = {
                         "link": reverse_lazy("admin:tracker_bundle_changelist"),
                     },
                     {
-                        "title": "Material Pieces",
-                        "icon": "extension",
-                        "link": reverse_lazy("admin:tracker_materialpiece_changelist"),
-                    },
-                    {
                         "title": "Production Lines",
                         "icon": "factory",
                         "link": reverse_lazy("admin:tracker_productionline_changelist"),
-                    },
-                    {
-                        "title": "Scanners",
-                        "icon": "scan",
-                        "link": reverse_lazy("admin:tracker_scanner_changelist"),
                     },
                     {
                         "title": "Scan Events",
@@ -119,6 +126,11 @@ UNFOLD_CONFIG = {
                         "title": "Quality Checks",
                         "icon": "verified",
                         "link": reverse_lazy("admin:tracker_qualitycheck_changelist"),
+                    },
+                    {
+                        "title": "Defects",
+                        "icon": "report",
+                        "link": reverse_lazy("admin:tracker_defect_changelist"),
                     },
                     {
                         "title": "Rework Assignments",

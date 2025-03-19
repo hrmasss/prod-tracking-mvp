@@ -54,7 +54,7 @@ def scan_qr_data(request):
             return HttpResponse("Scan already registered", status=200)
 
         # Create the ScanEvent
-        scan_event = ScanEvent.objects.create(
+        ScanEvent.objects.create(
             scanner=scanner, material_piece=material_piece
         )
 
@@ -75,15 +75,17 @@ def dashboard(request):
 
     if batch_id:
         selected_batch = get_object_or_404(ProductionBatch, pk=batch_id)
+        # changed total_pieces to filter through bundles
         total_pieces = MaterialPiece.objects.filter(
-            production_batch=selected_batch
+            bundle__production_batch=selected_batch
         ).count()
 
         # Material breakdown
+        # changed material_breakdown to filter through bundles
         material_breakdown = (
-            MaterialPiece.objects.filter(production_batch=selected_batch)
-            .values("material__name")
-            .annotate(count=Count("material__name"))
+            MaterialPiece.objects.filter(bundle__production_batch=selected_batch)
+            .values("bundle__material__name")
+            .annotate(count=Count("bundle__material__name"))
             .order_by("-count")
         )
 
@@ -91,11 +93,6 @@ def dashboard(request):
         production_lines = ProductionLine.objects.all()
         production_line_stats = []
         for line in production_lines:
-            # Get all material pieces in the selected batch
-            material_pieces = MaterialPiece.objects.filter(
-                production_batch=selected_batch
-            )
-
             # Get all scanners for the current production line
             in_scanners = Scanner.objects.filter(
                 production_line=line, type=Scanner.ScannerType.IN
@@ -103,7 +100,7 @@ def dashboard(request):
 
             # Count unique material pieces that have their FIRST scan event on this line
             input_pieces = (
-                MaterialPiece.objects.filter(production_batch=selected_batch)
+                MaterialPiece.objects.filter(bundle__production_batch=selected_batch)
                 .filter(
                     scan_events__scanner__in=in_scanners
                 )  # Scanned by an IN scanner on this line
@@ -115,11 +112,11 @@ def dashboard(request):
 
             # Find material pieces that have been scanned on this line
             pieces_scanned_on_line = MaterialPiece.objects.filter(
-                production_batch=selected_batch,
+                bundle__production_batch=selected_batch,
                 scan_events__scanner__production_line=line,
             ).distinct()
 
-            # Count unique material pieces that have a scan event on a DIFFERENT production line AFTER being scanned on this line
+            # Count unique material pieces
             output_pieces = 0
             for piece in pieces_scanned_on_line:
                 # Find the first scan time on the current line

@@ -100,25 +100,61 @@ def create_operations():
 
 def create_production_lines():
     production_lines = [
-        {"name": "Cutting Line 1", "operation_type": "CUTTING", "location": "8th Floor - A"},
+        {
+            "name": "Cutting Line 1",
+            "operation_type": "CUTTING",
+            "location": "8th Floor - A",
+        },
         {
             "name": "Finishing Line 1",
             "operation_type": "FINISHING",
             "location": "8th Floor - B",
         },
-        {"name": "Sewing Line 1", "operation_type": "SEWING", "location": "8th Floor - C"},
-        {"name": "Sewing Line 2", "operation_type": "SEWING", "location": "8th Floor - C"},
-        {"name": "Sewing Line 3", "operation_type": "SEWING", "location": "8th Floor - C"},
-        {"name": "Sewing Line 4", "operation_type": "SEWING", "location": "8th Floor - C"},
-        {"name": "Sewing Line 5", "operation_type": "SEWING", "location": "8th Floor - C"},
-        {"name": "Sewing Line 6", "operation_type": "SEWING", "location": "8th Floor - C"},
-        {"name": "Sewing Line 7", "operation_type": "SEWING", "location": "8th Floor - C"},
+        {
+            "name": "Sewing Line 1",
+            "operation_type": "SEWING",
+            "location": "8th Floor - C",
+        },
+        {
+            "name": "Sewing Line 2",
+            "operation_type": "SEWING",
+            "location": "8th Floor - C",
+        },
+        {
+            "name": "Sewing Line 3",
+            "operation_type": "SEWING",
+            "location": "8th Floor - C",
+        },
+        {
+            "name": "Sewing Line 4",
+            "operation_type": "SEWING",
+            "location": "8th Floor - C",
+        },
+        {
+            "name": "Sewing Line 5",
+            "operation_type": "SEWING",
+            "location": "8th Floor - C",
+        },
+        {
+            "name": "Sewing Line 6",
+            "operation_type": "SEWING",
+            "location": "8th Floor - C",
+        },
+        {
+            "name": "Sewing Line 7",
+            "operation_type": "SEWING",
+            "location": "8th Floor - C",
+        },
         {
             "name": "Downfilling Line 1",
             "operation_type": "DOWNFILLING",
             "location": "8th Floor - D",
         },
-        {"name": "Quilting Line 1", "operation_type": "QUILTING", "location": "8th Floor - E"},
+        {
+            "name": "Quilting Line 1",
+            "operation_type": "QUILTING",
+            "location": "8th Floor - E",
+        },
     ]
     for production_line in production_lines:
         ProductionLineFactory.create(**production_line)
@@ -167,7 +203,7 @@ def create_material_pieces(num_pieces=50):
     print(f"🧩 {num_pieces} Material Pieces created.")
 
 
-def seed_tracker_data():
+def seed_tracker_data(full=False):
     create_buyers()
     create_seasons()
     create_sizes()
@@ -176,9 +212,11 @@ def seed_tracker_data():
     create_operations()
     create_production_lines()
     create_styles()
-    create_orders()
-    create_order_items()
-    create_materials()
-    create_production_batches()
-    create_bundles()
-    create_material_pieces()
+
+    if full:
+        create_orders()
+        create_order_items()
+        create_materials()
+        create_production_batches()
+        create_bundles()
+        create_material_pieces()
