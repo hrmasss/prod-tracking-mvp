@@ -160,7 +160,7 @@ def render_qr_code(obj):
             "</div>"
             "<script>"
             "function printQrCode(imageUrl) {{"
-            "  var printWindow = window.open('', '_blank');"
+            "  const printWindow = window.open('', '_blank');"
             "  printWindow.document.write('<html><head><title>Print QR Code</title></head><body>');"
             "  printWindow.document.write('<img src=\\\"' + imageUrl + '\\\" style=\\\"max-width: 100%;\\\">');"
             "  printWindow.document.write('</body></html>');"
@@ -179,3 +179,43 @@ def render_qr_code(obj):
             obj.qr_image.url,
         )
     return "No QR code available"
+
+
+def render_combined_qr_codes(pieces):
+    qr_code_images = []
+    for piece in pieces:
+        if piece.qr_image:
+            qr_code_images.append(
+                f'<img src="{piece.qr_image.url}" style="width: 100px; margin: 5px;" />'
+            )
+        else:
+            qr_code_images.append("<div>No QR code available</div>")
+
+    # Combine all QR codes into a single HTML page
+    combined_html = f"""
+    <html>
+    <head>
+        <title>Combined QR Codes</title>
+        <style>
+            body {{
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                align-items: flex-start;
+            }}
+            img {{
+                width: 200px;
+                height: 200px;
+                margin: 5px;
+            }}
+        </style>
+    </head>
+    <body>
+        {''.join(qr_code_images)}
+    </body>
+    </html>
+    """
+
+    return format_html(
+        f'<iframe srcdoc="{combined_html}" width="100%" height="500px"></iframe>'
+    )

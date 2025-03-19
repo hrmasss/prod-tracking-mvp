@@ -1,9 +1,11 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from common.admin import BaseModelAdmin, TabularInline
 from tracker.utils import (
     generate_material_qr_code,
     render_qr_code,
     generate_bundle_qr_code,
+    render_combined_qr_codes,
 )
 from tracker.models import (
     Buyer,
@@ -27,6 +29,24 @@ class MaterialInline(TabularInline):
     extra = 0
 
 
+class MaterialPieceInline(TabularInline):
+    model = MaterialPiece
+    extra = 0
+    readonly_fields = ["qr_image_display"]
+    fields = ["qr_image_display"]
+
+    def qr_image_display(self, obj):
+        return render_qr_code(obj)
+
+    qr_image_display.short_description = "QR Code"
+
+    def save_model(self, request, obj, form, change):
+        # Generate QR code if it doesn't exist
+        if not obj.qr_code:
+            generate_material_qr_code(obj)
+        super().save_model(request, obj, form, change)
+
+
 class BundleInline(TabularInline):
     model = Bundle
     extra = 0
@@ -42,24 +62,6 @@ class BundleInline(TabularInline):
         # Generate QR code if it doesn't exist
         if not obj.qr_code:
             generate_bundle_qr_code(obj)
-        super().save_model(request, obj, form, change)
-
-
-class MaterialPieceInline(TabularInline):
-    model = MaterialPiece
-    extra = 0
-    readonly_fields = ["qr_image_display"]
-    fields = ["bundle", "qr_image_display"]
-
-    def qr_image_display(self, obj):
-        return render_qr_code(obj)
-
-    qr_image_display.short_description = "QR Code"
-
-    def save_model(self, request, obj, form, change):
-        # Generate QR code if it doesn't exist
-        if not obj.qr_code:
-            generate_material_qr_code(obj)
         super().save_model(request, obj, form, change)
 
 
@@ -110,13 +112,27 @@ class BundleAdmin(BaseModelAdmin):
         "updated_at",
     )
     list_filter = ("production_batch", "material", "size")
-    readonly_fields = ["qr_code", "qr_image_display"]
-    fields = ["production_batch", "material", "size", "quantity"]
+    readonly_fields = ["qr_code", "qr_image_display", "print_pieces_qr_codes"]
+    fields = [
+        "production_batch",
+        "material",
+        "size",
+        "quantity",
+        "qr_image_display",
+        "print_pieces_qr_codes",
+    ]
+    inlines = [MaterialPieceInline]
 
     def qr_image_display(self, obj):
         return render_qr_code(obj)
 
     qr_image_display.short_description = "QR Code"
+
+    def print_pieces_qr_codes(self, obj):
+        pieces = obj.material_pieces.all()
+        return render_combined_qr_codes(pieces)  # Use the new function
+
+    print_pieces_qr_codes.short_description = "Print All Pieces QR Codes"
 
 
 @admin.register(MaterialPiece)
