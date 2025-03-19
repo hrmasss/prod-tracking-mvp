@@ -84,11 +84,21 @@ UNFOLD_CONFIG = {
                         "link": reverse_lazy("admin:tracker_style_changelist"),
                     },
                     {
-                        "title": "Production",
-                        "icon": "handyman",
+                        "title": "Production Batches",
+                        "icon": "inventory",
                         "link": reverse_lazy(
                             "admin:tracker_productionbatch_changelist"
                         ),
+                    },
+                    {
+                        "title": "Bundles",
+                        "icon": "box",
+                        "link": reverse_lazy("admin:tracker_bundle_changelist"),
+                    },
+                    {
+                        "title": "Material Pieces",
+                        "icon": "extension",
+                        "link": reverse_lazy("admin:tracker_materialpiece_changelist"),
                     },
                     {
                         "title": "Production Lines",
@@ -96,9 +106,26 @@ UNFOLD_CONFIG = {
                         "link": reverse_lazy("admin:tracker_productionline_changelist"),
                     },
                     {
+                        "title": "Scanners",
+                        "icon": "scan",
+                        "link": reverse_lazy("admin:tracker_scanner_changelist"),
+                    },
+                    {
                         "title": "Scan Events",
                         "icon": "history",
                         "link": reverse_lazy("admin:tracker_scanevent_changelist"),
+                    },
+                    {
+                        "title": "Quality Checks",
+                        "icon": "verified",
+                        "link": reverse_lazy("admin:tracker_qualitycheck_changelist"),
+                    },
+                    {
+                        "title": "Rework Assignments",
+                        "icon": "handyman",
+                        "link": reverse_lazy(
+                            "admin:tracker_reworkassignment_changelist"
+                        ),
                     },
                 ],
             },

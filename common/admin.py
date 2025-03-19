@@ -1,6 +1,10 @@
 from django.db import models
 from simple_history.admin import SimpleHistoryAdmin
-from unfold.admin import ModelAdmin, StackedInline, TabularInline
+from unfold.admin import (
+    ModelAdmin,
+    StackedInline as BaseStackedInline,
+    TabularInline as BaseTabularInline,
+)
 from unfold.widgets import (
     UnfoldAdminSelectWidget,
     UnfoldAdminTextInputWidget,
@@ -35,11 +39,11 @@ class BaseInlineAdmin:
         return form
 
 
-class BaseStackedInline(BaseInlineAdmin, StackedInline):
+class StackedInline(BaseInlineAdmin, BaseStackedInline):
     pass
 
 
-class BaseTabularInline(BaseInlineAdmin, TabularInline):
+class TabularInline(BaseInlineAdmin, BaseTabularInline):
     pass
 
 

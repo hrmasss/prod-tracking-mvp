@@ -11,20 +11,32 @@ from django.core.files.base import ContentFile
 
 def material_qr_image_upload_path(instance, filename):
     # Generate path structure: buyer/season/style/
+    style = instance.bundle.material.style
+    buyer = style.buyer.name.replace(" ", "_")
+    season = style.season.name.replace(" ", "_")
+    style_name = style.style_name.replace(" ", "_")
+
+    # Create directory structure
+    path = f"qr_codes/{buyer}/{season}/{style_name}"
+    return os.path.join(path, filename)
+
+
+def bundle_qr_image_upload_path(instance, filename):
+    # Generate path structure: buyer/season/style/
     style = instance.material.style
     buyer = style.buyer.name.replace(" ", "_")
     season = style.season.name.replace(" ", "_")
-    style_number = style.style_number.replace(" ", "_")
+    style_name = style.style_name.replace(" ", "_")
 
     # Create directory structure
-    path = f"qr_codes/{buyer}/{season}/{style_number}"
+    path = f"qr_codes/{buyer}/{season}/{style_name}/bundles"
     return os.path.join(path, filename)
 
 
 def generate_numeric_code_for_qr(instance_id, prefix):
     """
     Generate a unique 8-digit numeric code
-    - prefix: 1 for material pieces
+    - prefix: 1 for material pieces, 2 for bundles
     - remaining digits: padded instance_id or hashed value if too large
     """
     # Convert instance_id to string
@@ -86,14 +98,51 @@ def generate_material_qr_code(instance):
     return False
 
 
+def generate_bundle_qr_code(instance):
+    """Generate QR code for a bundle instance"""
+    if instance:
+        # Generate the 8-digit numeric code (2 + 6 digits)
+        numeric_code = generate_numeric_code_for_qr(instance.id, prefix="2")
+        instance.qr_code = numeric_code
+
+        # Generate the QR image
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(numeric_code)
+        qr.make(fit=True)
+
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+
+        # Create a unique filename
+        filename = f"{instance.qr_code}.png"
+
+        # Save the image to the ImageField
+        instance.qr_image.save(
+            filename,
+            ContentFile(buffer.getvalue()),
+            save=False,
+        )
+
+        # Now save the model with both the code and image updated
+        instance.save(update_fields=["qr_code", "qr_image"])
+        return True
+    return False
+
+
 # --- ADMIN UTILITIES ---
 
 
 def render_qr_code(obj):
     if obj.qr_image:
         filename = "material_piece"
-        if hasattr(obj, "style"):
-            filename = f"{obj.style.buyer.name}_{obj.style.season.name}_{obj.style.style_number}_{obj.name}".replace(
+        if hasattr(obj, "bundle"):
+            filename = f"{obj.bundle.material.style.buyer.name}_{obj.bundle.material.style.season.name}_{obj.bundle.material.style.style_name}_{obj.bundle.material.name}_{obj.bundle.size}".replace(
                 " ", "_"
             )
         else:
