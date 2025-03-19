@@ -19,10 +19,10 @@ class MaterialInline(BaseTabularInline):
     extra = 1
 
 
-class MaterialPieceInline(BaseStackedInline):
+class MaterialPieceInline(BaseTabularInline):
     model = MaterialPiece
     extra = 1
-    fields = ["material", "qr_image_display", "current_production_line"]
+    fields = ["material", "qr_image_display"]
     readonly_fields = ["qr_image_display"]
 
     def qr_image_display(self, obj):
