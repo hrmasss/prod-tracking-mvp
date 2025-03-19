@@ -78,24 +78,9 @@ UNFOLD_CONFIG = {
                 "collapsible": True,
                 "items": [
                     {
-                        "title": "Buyers",
-                        "icon": "shop",
-                        "link": reverse_lazy("admin:tracker_buyer_changelist"),
-                    },
-                    {
-                        "title": "Seasons",
-                        "icon": "event",
-                        "link": reverse_lazy("admin:tracker_season_changelist"),
-                    },
-                    {
                         "title": "Styles",
                         "icon": "apparel",
                         "link": reverse_lazy("admin:tracker_style_changelist"),
-                    },
-                    {
-                        "title": "Material Pieces",
-                        "icon": "extension",
-                        "link": reverse_lazy("admin:tracker_materialpiece_changelist"),
                     },
                     {
                         "title": "Bundles",
@@ -106,11 +91,6 @@ UNFOLD_CONFIG = {
                         "title": "Production Lines",
                         "icon": "factory",
                         "link": reverse_lazy("admin:tracker_productionline_changelist"),
-                    },
-                    {
-                        "title": "Scanners",
-                        "icon": "scan",
-                        "link": reverse_lazy("admin:tracker_scanner_changelist"),
                     },
                     {
                         "title": "Scan Events",

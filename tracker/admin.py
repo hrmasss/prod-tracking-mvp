@@ -1,7 +1,7 @@
 import qrcode
 from io import BytesIO
 from django.contrib import admin
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin, TabularInline  # Import TabularInline
 from django.core.files.base import ContentFile
 from tracker.models import (
     Buyer,
@@ -13,6 +13,22 @@ from tracker.models import (
     Scanner,
     ScanEvent,
 )
+
+
+# --- INLINE ADMIN CLASSES ---
+
+
+class MaterialPieceInline(TabularInline):
+    model = MaterialPiece
+    extra = 1
+
+
+class ScannerInline(TabularInline):
+    model = Scanner
+    extra = 1
+
+
+# --- MAIN ADMIN CLASSES ---
 
 
 @admin.register(Buyer)
@@ -29,6 +45,7 @@ class SeasonAdmin(ModelAdmin):
 class StyleAdmin(ModelAdmin):
     list_display = ("buyer", "season", "style_number", "created_at", "updated_at")
     list_filter = ("buyer", "season")
+    inlines = [MaterialPieceInline]
 
 
 @admin.register(MaterialPiece)
@@ -96,6 +113,7 @@ class BundleAdmin(ModelAdmin):
 @admin.register(ProductionLine)
 class ProductionLineAdmin(ModelAdmin):
     list_display = ("name", "location", "created_at", "updated_at")
+    inlines = [ScannerInline]
 
 
 @admin.register(Scanner)
