@@ -1,0 +1,43 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+  <div class="container mx-auto mt-10">
+    <h1 class="text-2xl font-bold mb-5">Dashboard</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+      <div class="bg-white shadow-md rounded-md p-5">
+        <h2 class="text-lg font-semibold mb-2">Total Material Pieces</h2>
+        <p class="text-3xl">{{ total_pieces }}</p>
+      </div>
+      <div class="bg-white shadow-md rounded-md p-5">
+        <h2 class="text-lg font-semibold mb-2">Total Bundles</h2>
+        <p class="text-3xl">{{ total_bundles }}</p>
+      </div>
+      <div class="bg-white shadow-md rounded-md p-5">
+        <h2 class="text-lg font-semibold mb-2">Total Scan Events</h2>
+        <p class="text-3xl">{{ total_scan_events }}</p>
+      </div>
+    </div>
+    <div class="bg-white shadow-md rounded-md p-5">
+      <h2 class="text-lg font-semibold mb-2">Latest Scan Events</h2>
+      <table class="table-auto w-full">
+        <thead>
+          <tr>
+            <th class="px-4 py-2">Scanner</th>
+            <th class="px-4 py-2">Material Piece</th>
+            <th class="px-4 py-2">Bundle</th>
+            <th class="px-4 py-2">Scan Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in latest_scan_events %}
+            <tr>
+              <td class="border px-4 py-2">{{ event.scanner }}</td>
+              <td class="border px-4 py-2">{{ event.material_piece }}</td>
+              <td class="border px-4 py-2">{{ event.bundle }}</td>
+              <td class="border px-4 py-2">{{ event.scan_time }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

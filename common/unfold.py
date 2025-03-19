@@ -72,6 +72,53 @@ UNFOLD_CONFIG = {
                     },
                 ],
             },
+            {
+                "title": "Production Tracking",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Buyers",
+                        "icon": "shop",
+                        "link": reverse_lazy("admin:tracker_buyer_changelist"),
+                    },
+                    {
+                        "title": "Seasons",
+                        "icon": "event",
+                        "link": reverse_lazy("admin:tracker_season_changelist"),
+                    },
+                    {
+                        "title": "Styles",
+                        "icon": "apparel",
+                        "link": reverse_lazy("admin:tracker_style_changelist"),
+                    },
+                    {
+                        "title": "Material Pieces",
+                        "icon": "extension",
+                        "link": reverse_lazy("admin:tracker_materialpiece_changelist"),
+                    },
+                    {
+                        "title": "Bundles",
+                        "icon": "package",
+                        "link": reverse_lazy("admin:tracker_bundle_changelist"),
+                    },
+                    {
+                        "title": "Production Lines",
+                        "icon": "factory",
+                        "link": reverse_lazy("admin:tracker_productionline_changelist"),
+                    },
+                    {
+                        "title": "Scanners",
+                        "icon": "scan",
+                        "link": reverse_lazy("admin:tracker_scanner_changelist"),
+                    },
+                    {
+                        "title": "Scan Events",
+                        "icon": "history",
+                        "link": reverse_lazy("admin:tracker_scanevent_changelist"),
+                    },
+                ],
+            },
         ],
     },
 }

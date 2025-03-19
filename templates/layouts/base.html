@@ -24,16 +24,10 @@
     {% endblock extra_head %}
   </head>
   <body class="font-sans antialiased bg-background text-foreground">
-    {% block header %}
-      {% include "partials/header.html" %}
-    {% endblock header %}
     <main class="w-full overflow-hidden">
       {% block content %}
       {% endblock content %}
     </main>
-    {% block footer %}
-      {% include "partials/footer.html" %}
-    {% endblock footer %}
     <!-- Preline Module -->
     <script src="{% static "js/preline.js" %}"></script>
     {% block extra_scripts %}
