@@ -1,5 +1,5 @@
 import json
-from django.db.models import Count
+from django.db.models import Count, Q, F, Min, OuterRef, Subquery
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404
@@ -14,6 +14,7 @@ from tracker.models import (
     ReworkAssignment,
     Bundle,
 )
+from django.db import connection
 
 
 def scan_qr(request):
@@ -193,9 +194,15 @@ def dashboard(request):
         )
 
         # Get production line stats
-        production_lines = ProductionLine.objects.all()
+        production_lines = ProductionLine.objects.all().order_by("id")
         production_line_stats = []
 
+        # First, get all material pieces for this batch
+        batch_pieces = MaterialPiece.objects.filter(
+            bundle__production_batch=selected_batch
+        )
+
+        # For each production line
         for line in production_lines:
             # Get all scanners for this line
             in_scanners = Scanner.objects.filter(
@@ -208,32 +215,82 @@ def dashboard(request):
                 production_line=line, type=Scanner.ScannerType.QC
             )
 
-            # Count pieces scanned at IN scanners
+            # Count pieces scanned at IN scanners for this line
             input_pieces = (
                 ScanEvent.objects.filter(
                     scanner__in=in_scanners,
-                    material_piece__bundle__production_batch=selected_batch,
+                    material_piece__in=batch_pieces,
                 )
                 .values("material_piece")
                 .distinct()
                 .count()
             )
 
-            # Count pieces scanned at OUT scanners
-            output_pieces = (
+            # Initialize output pieces count
+            output_pieces = 0
+
+            # Get all pieces that were scanned at this line's IN scanners
+            scanned_pieces_ids = (
                 ScanEvent.objects.filter(
-                    scanner__in=out_scanners,
-                    material_piece__bundle__production_batch=selected_batch,
+                    scanner__in=in_scanners,
+                    material_piece__in=batch_pieces,
                 )
-                .values("material_piece")
+                .values_list("material_piece_id", flat=True)
                 .distinct()
-                .count()
             )
+
+            # For each piece that was scanned at this line
+            for piece_id in scanned_pieces_ids:
+                piece_complete_at_this_line = False
+
+                # Check output priority:
+                # 1. First check if this piece was scanned at an OUT scanner in this line
+                if ScanEvent.objects.filter(
+                    scanner__in=out_scanners, material_piece_id=piece_id
+                ).exists():
+                    piece_complete_at_this_line = True
+
+                # 2. If not, check if this piece was scanned at a QC scanner in this line
+                elif ScanEvent.objects.filter(
+                    scanner__in=qc_scanners, material_piece_id=piece_id
+                ).exists():
+                    piece_complete_at_this_line = True
+
+                # 3. If not, check if this piece was scanned at any later line
+                else:
+                    # Get all production lines that have scanned this piece
+                    other_line_scans = (
+                        ScanEvent.objects.filter(material_piece_id=piece_id)
+                        .exclude(scanner__production_line=line)
+                        .values("scanner__production_line", "scan_time")
+                        .order_by("scan_time")
+                    )
+
+                    # Get the earliest scan time for this piece at this line
+                    this_line_scan_time = (
+                        ScanEvent.objects.filter(
+                            scanner__production_line=line, material_piece_id=piece_id
+                        )
+                        .order_by("scan_time")
+                        .values_list("scan_time", flat=True)
+                        .first()
+                    )
+
+                    if this_line_scan_time:
+                        # Check if any other line scanned this piece after this line
+                        for scan in other_line_scans:
+                            if scan["scan_time"] > this_line_scan_time:
+                                piece_complete_at_this_line = True
+                                break
+
+                # If the piece is complete at this line by any of the criteria, count it as output
+                if piece_complete_at_this_line:
+                    output_pieces += 1
 
             # Get QC statistics
             qc_scans = ScanEvent.objects.filter(
                 scanner__in=qc_scanners,
-                material_piece__bundle__production_batch=selected_batch,
+                material_piece__in=batch_pieces,
             ).prefetch_related("quality_check")
 
             # Count by QC status
