@@ -136,7 +136,7 @@ def generate_material_qr_code(instance):
         code_width = bbox[2] - bbox[0]
         code_height = bbox[3] - bbox[1]
         code_x = label_width + (qr_width - code_width) // 2
-        code_y = qr_height -20
+        code_y = qr_height - 20
         d.text((code_x, code_y), numeric_code, fill="black", font=font)
 
         buffer = BytesIO()
@@ -256,36 +256,58 @@ def generate_bundle_qr_code(instance):
 
 def render_qr_code(obj):
     if obj.qr_image:
-        filename = str(obj.pk)
+        filename = f"{obj.qr_code}"
+
+        # Create HTML content for the iframe
+        iframe_html = f"""
+        <html>
+        <head>
+            <title>Print QR Code</title>
+            <style>
+                body {{
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                }}
+                img {{
+                    max-width: 100%;
+                    max-height: 100%;
+                }}
+            </style>
+        </head>
+        <body>
+            <img src="{obj.qr_image.url}">
+        </body>
+        </html>
+        """
 
         return format_html(
             '<div style="display: flex; flex-direction: column; align-items: flex-start;">'
             '<div style="display: flex; align-items: center;">'
             '<a href="{}" target="_blank"><img src="{}" width="200" /></a>'
             '<div style="margin-left: 10px;">'
-            '<a href="{}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" download="{}.png">Download</a>'
-            '<button type="button" onclick="printQrCode(\'{}\')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print</button>'
+            '<a href="{}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" download="{}">Download</a>'
+            '<button type="button" onclick="printSingleQrCode(\'qr-iframe-{}\')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print</button>'
             "</div>"
             "</div>"
+            '<iframe id="qr-iframe-{}" srcdoc="{}" style="display:none;" width="0" height="0"></iframe>'
             "<script>"
-            "function printQrCode(imageUrl) {{"
-            "  const printWindow = window.open('', '_blank');"
-            "  printWindow.document.write('<html><head><title>Print QR Code</title></head><body>');"
-            "  printWindow.document.write('<img src=\\\"' + imageUrl + '\\\" style=\\\"max-width: 100%;\\\">');"
-            "  printWindow.document.write('</body></html>');"
-            "  printWindow.document.close();"
-            "  printWindow.focus();"
-            "  printWindow.print();"
-            "  printWindow.close();"
+            "function printSingleQrCode(iframeId) {{"
+            "  var iframe = document.getElementById(iframeId);"
+            "  iframe.contentWindow.focus();"
+            "  iframe.contentWindow.print();"
             "}}"
             "</script>"
             "</div>",
-            obj.qr_code,
-            obj.qr_image.url,
-            obj.qr_image.url,
-            obj.qr_image.url,
-            filename,
-            obj.qr_image.url,
+            obj.qr_image.url,  # View URL
+            obj.qr_image.url,  # Image source URL
+            obj.qr_image.url,  # Download URL
+            filename + ".png",  # Download filename
+            obj.id,  # Unique iframe ID based on object ID
+            obj.id,  # Same unique ID for the iframe
+            iframe_html,  # HTML content for the iframe
         )
     return "No QR code available"
 
