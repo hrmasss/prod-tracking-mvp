@@ -214,8 +214,8 @@ def generate_bundle_qr_code(instance):
             font = ImageFont.load_default()  # If Arial is not available
 
         # Add labels to the left
-        x_offset = 15  # Added horizontal offset/padding
-        y_offset = 15  # Increased vertical offset/padding
+        x_offset = 30
+        y_offset = 40
         line_height = 25  # Increased line height for better spacing
         for label in labels:
             d.text((x_offset, y_offset), label, fill="black", font=font)
@@ -229,7 +229,7 @@ def generate_bundle_qr_code(instance):
         code_width = bbox[2] - bbox[0]
         code_height = bbox[3] - bbox[1]
         code_x = label_width + (qr_width - code_width) // 2
-        code_y = qr_height + 5  # Adjust position of the code
+        code_y = qr_height -20
         d.text((code_x, code_y), numeric_code, fill="black", font=font)
 
         buffer = BytesIO()
@@ -317,10 +317,12 @@ def render_combined_qr_codes(pieces):
     for piece in pieces:
         if piece.qr_image:
             qr_code_images.append(
-                f'<img src="{piece.qr_image.url}" style="width: 200px; height: 200px; margin: 5px;" />'
+                f'<div class="qr-item"><img src="{piece.qr_image.url}" /></div>'
             )
         else:
-            qr_code_images.append("<div>No QR code available</div>")
+            qr_code_images.append(
+                '<div class="qr-item empty">No QR code available</div>'
+            )
 
     # Combine all QR codes into a single HTML page
     combined_html = f"""
@@ -328,21 +330,38 @@ def render_combined_qr_codes(pieces):
     <head>
         <title>Combined QR Codes</title>
         <style>
-            @media print {{
-                body {{
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: flex-start;
-                    align-items: flex-start;
-                }}
+            @page {{
+                size: auto;
+                margin: 0.5cm;
             }}
             body {{
-                display: none;
+                margin: 0;
+                padding: 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+                gap: 10px;
+            }}
+            .qr-item {{
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }}
             img {{
-                width: 200px;
+                max-width: 220px;
+                max-height: 220px;
+                transform-origin: center center;
+            }}
+            .empty {{
+                border: 1px dashed #ccc;
+                padding: 10px;
+                text-align: center;
                 height: 200px;
-                margin: 5px;
+            }}
+            @media print {{
+                body {{
+                    width: 100%;
+                    height: 100%;
+                }}
             }}
         </style>
     </head>
