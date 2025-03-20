@@ -312,10 +312,17 @@ def dashboard(request):
             # Calculate shortage/liability
             shortage_liability = input_pieces - output_pieces
 
-            # Calculate efficiency if there are input pieces
+            # Calculate efficiency more accurately by accounting for quality issues
             efficiency = 0
             if input_pieces > 0:
-                efficiency = (output_pieces / input_pieces) * 100
+                # Calculate effective output by applying penalties for rejected and rework pieces
+                # Rejected pieces contribute 0% to efficiency (complete loss)
+                # Rework pieces contribute 50% to efficiency (partial completion)
+                effective_output = accepted_count + (rework_count * 0.5)
+                efficiency = (effective_output / input_pieces) * 100
+
+            # Calculate shortage/liability
+            shortage_liability = input_pieces - output_pieces
 
             production_line_stats.append(
                 {
