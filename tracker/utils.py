@@ -89,6 +89,8 @@ def generate_material_qr_code(instance):
         batch_number = instance.bundle.production_batch.batch_number or "N/A"
         season_name = instance.bundle.production_batch.order.season.name
         buyer_name = instance.bundle.production_batch.order.buyer.name
+        material_type = instance.bundle.material.material_type.name
+        material_name = instance.bundle.material.name
 
         # Prepare text labels
         labels = [
@@ -98,10 +100,12 @@ def generate_material_qr_code(instance):
             f"Size: {size_name}",
             f"Color: {color_name}",
             f"Batch: {batch_number}",
+            f"Material Type: {material_type}",
+            f"Material Name: {material_name}",
         ]
 
         # --- Create a combined image ---
-        label_width = 250  # Increased width for more text
+        label_width = 300  # Increased width for more text
         qr_width, qr_height = qr_img.size
         img_height = qr_height + 30  # Increased space for the code below
         img_width = label_width + qr_width  # Labels + QR code
@@ -190,6 +194,7 @@ def generate_bundle_qr_code(instance):
             f"Size: {size_name}",
             f"Color: {color_name}",
             f"Batch: {batch_number}",
+            f"Bundle ID: {instance.id}",
         ]
 
         # --- Create a combined image ---
@@ -255,7 +260,6 @@ def render_qr_code(obj):
 
         return format_html(
             '<div style="display: flex; flex-direction: column; align-items: flex-start;">'
-            "<div>QR Code: {}</div>"
             '<div style="display: flex; align-items: center;">'
             '<a href="{}" target="_blank"><img src="{}" width="100" /></a>'
             '<div style="margin-left: 10px;">'
