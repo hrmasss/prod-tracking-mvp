@@ -12,6 +12,7 @@ from tracker.models import (
     QualityCheck,
     Defect,
     ReworkAssignment,
+    Bundle,
 )
 
 
@@ -36,7 +37,6 @@ def scanner_scan(request, scanner_id):
 @csrf_exempt
 def scan_qr_data(request):
     if request.method == "POST":
-        print(f"Request body: {request.body}")
         data = json.loads(request.body.decode("utf-8"))
         qr_data = data.get("qr_data")
         scanner_name = data.get("scanner_name")
@@ -57,82 +57,117 @@ def scan_qr_data(request):
         except Scanner.DoesNotExist:
             return JsonResponse({"error": "Scanner not found"}, status=400)
 
+        # First try to find a Material Piece with the scanned QR code
+        material_pieces = []
         try:
-            # Try to find a MaterialPiece
             material_piece = MaterialPiece.objects.get(qr_code=qr_data)
+            material_pieces = [material_piece]
         except MaterialPiece.DoesNotExist:
-            return JsonResponse({"error": "Invalid QR code"}, status=400)
-
-        # Check if a scan event already exists for this scanner and QR code
-        existing_scan = ScanEvent.objects.filter(
-            scanner=scanner, material_piece=material_piece
-        ).exists()
-
-        if existing_scan:
-            return JsonResponse({"message": "Scan already registered"}, status=200)
-
-        # Create the ScanEvent
-        scan_event = ScanEvent.objects.create(
-            scanner=scanner, material_piece=material_piece
-        )
-
-        # Handle different scanner types
-        if scanner.type == Scanner.ScannerType.IN:
-            # Update MaterialPiece location
-            material_piece.current_production_line = production_line
-            material_piece.production_flow.add(production_line)
-            material_piece.save()
-
-            return JsonResponse(
-                {
-                    "message": f"Material Piece {material_piece.bundle.material.name} scanned at {production_line.name}",
-                    "status": "success",
-                }
-            )
-
-        elif scanner.type == Scanner.ScannerType.QC:
-            # Create quality check record
-            if not quality_status:
+            # If not found, try to find a Bundle
+            try:
+                bundle = Bundle.objects.get(qr_code=qr_data)
+                # Get all material pieces from this bundle
+                material_pieces = list(bundle.material_pieces.all())
+                if not material_pieces:
+                    return JsonResponse(
+                        {"error": "Bundle found but it has no material pieces"},
+                        status=400,
+                    )
+            except Bundle.DoesNotExist:
                 return JsonResponse(
-                    {"error": "Quality status is required for QC scanners"}, status=400
+                    {
+                        "error": "Invalid QR code - not matching any Material Piece or Bundle"
+                    },
+                    status=400,
                 )
 
-            quality_check = QualityCheck.objects.create(
-                scan_event=scan_event,
-                status=quality_status,
-                notes=data.get("notes", ""),
+        # Process all material pieces
+        processed_count = 0
+        for material_piece in material_pieces:
+            # Check if a scan event already exists for this scanner and QR code
+            existing_scan = ScanEvent.objects.filter(
+                scanner=scanner, material_piece=material_piece
+            ).exists()
+
+            if existing_scan:
+                continue  # Skip this piece if already scanned
+
+            # Create the ScanEvent
+            scan_event = ScanEvent.objects.create(
+                scanner=scanner, material_piece=material_piece
             )
+            processed_count += 1
 
-            # Add defects if any
-            if defect_ids:
-                defects = Defect.objects.filter(id__in=defect_ids)
-                quality_check.defects.add(*defects)
+            # Handle different scanner types
+            if scanner.type == Scanner.ScannerType.IN:
+                # Update MaterialPiece location
+                material_piece.current_production_line = production_line
+                material_piece.production_flow.add(production_line)
+                material_piece.save()
 
-            # Create rework assignment if status is REWORK
-            if quality_status == QualityCheck.QualityStatus.REWORK and rework_notes:
-                ReworkAssignment.objects.create(
-                    quality_check=quality_check,
-                    rework_production_line=production_line,
-                    rework_notes=rework_notes,
+            elif scanner.type == Scanner.ScannerType.QC:
+                # Create quality check record
+                if not quality_status:
+                    return JsonResponse(
+                        {"error": "Quality status is required for QC scanners"},
+                        status=400,
+                    )
+
+                quality_check = QualityCheck.objects.create(
+                    scan_event=scan_event,
+                    status=quality_status,
+                    notes=data.get("notes", ""),
                 )
 
+                # Add defects if any
+                if defect_ids:
+                    defects = Defect.objects.filter(id__in=defect_ids)
+                    quality_check.defects.add(*defects)
+
+                # Create rework assignment if status is REWORK
+                if quality_status == QualityCheck.QualityStatus.REWORK and rework_notes:
+                    ReworkAssignment.objects.create(
+                        quality_check=quality_check,
+                        rework_production_line=production_line,
+                        rework_notes=rework_notes,
+                    )
+
+            # For OUT scanners, we don't need to do anything special other than create the scan event
+            # The material_piece.production_flow already keeps track of history
+
+        # Generate appropriate message based on scan result
+        if processed_count == 0:
             return JsonResponse(
                 {
-                    "message": f"Quality Check completed for {material_piece.bundle.material.name} with status {quality_status}",
+                    "message": "All pieces in this scan were already processed",
                     "status": "success",
                 }
             )
 
-        elif scanner.type == Scanner.ScannerType.OUT:
-            # Material piece is leaving this production line
-            # We don't remove it from production_flow as we want to keep history
+        if len(material_pieces) > 1:
+            # Bundle scan
+            bundle_name = material_pieces[0].bundle.material.name
+            if scanner.type == Scanner.ScannerType.IN:
+                message = f"Bundle {bundle_name}: {processed_count} pieces scanned at {production_line.name}"
+            elif scanner.type == Scanner.ScannerType.QC:
+                message = f"Bundle {bundle_name}: {processed_count} pieces quality checked as {quality_status}"
+            else:  # OUT
+                message = f"Bundle {bundle_name}: {processed_count} pieces completed at {production_line.name}"
+        else:
+            # Single piece scan
+            piece_name = material_pieces[0].bundle.material.name
+            if scanner.type == Scanner.ScannerType.IN:
+                message = (
+                    f"Material Piece {piece_name} scanned at {production_line.name}"
+                )
+            elif scanner.type == Scanner.ScannerType.QC:
+                message = f"Quality Check completed for {piece_name} with status {quality_status}"
+            else:  # OUT
+                message = (
+                    f"Material Piece {piece_name} completed at {production_line.name}"
+                )
 
-            return JsonResponse(
-                {
-                    "message": f"Material Piece {material_piece.bundle.material.name} completed at {production_line.name}",
-                    "status": "success",
-                }
-            )
+        return JsonResponse({"message": message, "status": "success"})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
 
