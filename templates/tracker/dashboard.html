@@ -4,133 +4,164 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock extra_head %}
 {% block content %}
-  <div class="container mx-auto mt-10">
+  <div class="container mx-auto mt-4">
     <!-- Production Batch List -->
-    <h2 class="text-lg font-semibold mb-2">
+    <h2 class="text-md font-semibold mb-1">
       <i class="ph-duotone ph-scissors text-gray-600 mr-1"></i>
       Active Production Batches
     </h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-3">
       {% for batch in production_batches %}
         <a href="{% url 'dashboard' %}?batch_id={{ batch.id }}"
-           class="bg-white shadow-md rounded-md p-5 hover:bg-blue-50 transition duration-200 flex flex-col justify-between
-           {% if selected_batch.id == batch.id %}ring-2 ring-blue-500{% endif %}">
+           class="bg-white shadow-md rounded-md p-3 hover:bg-blue-50 transition duration-200 flex flex-col justify-between {% if selected_batch.id == batch.id %}ring-2 ring-blue-500{% endif %}">
           <div>
-            <h3 class="font-bold text-lg">{{ batch.style }}</h3>
-            <p class="text-gray-700">Batch #{{ batch.batch_number }}</p>
-          </div>
-          <div class="mt-2 text-sm text-gray-500">
-            <p>Start: {{ batch.start_date|date:"M d, Y" }}</p>
-            <p>Target: {{ batch.target_completion_date|date:"M d, Y" }}</p>
+            <h3 class="font-bold text-sm">{{ batch.style }}</h3>
+            <p class="text-gray-700 text-xs">Batch #{{ batch.batch_number }}</p>
           </div>
         </a>
       {% empty %}
-        <p>No active production batches.</p>
+        <p class="text-sm">No active production batches.</p>
       {% endfor %}
     </div>
-    
     <!-- Dashboard Content (Conditional) -->
     {% if selected_batch %}
-      <h2 class="text-lg font-semibold mb-2">
-        <i class="ph-duotone ph-info text-gray-600 mr-1"></i>
-        Production Batch: {{ selected_batch.style }} - Batch {{ selected_batch.batch_number }}
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
-        <div class="bg-white shadow-md rounded-md p-5 border-l-4 border-blue-500">
-          <h2 class="text-lg font-semibold mb-2">
+      <div class="flex items-center mb-1">
+        <h2 class="text-md font-semibold">
+          <i class="ph-duotone ph-info text-gray-600 mr-1"></i>
+          Batch: {{ selected_batch.style }} - #{{ selected_batch.batch_number }}
+        </h2>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 mb-3">
+        <div class="bg-white shadow-md rounded-md p-2 border-l-4 border-blue-500">
+          <h2 class="text-sm font-semibold">
             <i class="ph-duotone ph-t-shirt text-gray-600 mr-1"></i>
             Total Pieces
           </h2>
-          <p class="text-3xl text-blue-700">{{ total_pieces }}</p>
+          <p class="text-xl text-blue-700">{{ total_pieces }}</p>
         </div>
         {% for item in material_breakdown %}
-          <div class="bg-white shadow-md rounded-md p-5 border-l-4 border-gray-500">
-            <h2 class="text-lg font-semibold mb-2">
+          <div class="bg-white shadow-md rounded-md p-2 border-l-4 border-gray-500">
+            <h2 class="text-sm font-semibold truncate"
+                title="{{ item.bundle__material__name }}">
               <i class="ph-duotone ph-stack text-gray-600 mr-1"></i>
               {{ item.bundle__material__name }}
             </h2>
-            <p class="text-3xl text-gray-700">{{ item.count }}</p>
+            <p class="text-xl text-gray-700">{{ item.count }}</p>
           </div>
         {% endfor %}
       </div>
     {% endif %}
-    
     <!-- Production Line Stats -->
-    <h2 class="text-lg font-semibold mb-2">
+    <h2 class="text-md font-semibold mb-1">
       <i class="ph-duotone ph-line-segments text-gray-600 mr-1"></i>
       Production Line Statistics
     </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-3 justify-stretch justify-items-stretch">
       {% for stat in production_line_stats %}
-        <div class="bg-white shadow-md rounded-md p-5 border-l-4 {% if stat.shortage_liability > 0 %}border-yellow-500{% else %}border-green-500{% endif %}">
-          <h3 class="text-md font-semibold mb-2 flex items-center">
+        <div class="bg-white shadow-md rounded-md p-2 border-l-4 {% if stat.shortage_liability > 0 %}border-yellow-500{% else %}border-green-500{% endif %}">
+          <h3 class="text-sm font-semibold mb-1 flex items-center truncate"
+              title="{{ stat.line.name }}">
             <i class="ph-duotone ph-factory text-gray-600 mr-1"></i>
             {{ stat.line.name }}
           </h3>
-          
           <!-- Production Counts -->
-          <div class="flex justify-between mb-3">
+          <div class="flex justify-between mb-2">
             <div class="text-center">
-              <p class="text-xs text-gray-500">INPUT</p>
-              <p class="text-xl font-bold text-blue-600">{{ stat.input_pieces }}</p>
+              <p class="text-xs text-gray-500">IN</p>
+              <p class="text-md font-bold text-blue-600">{{ stat.input_pieces }}</p>
             </div>
             <div class="text-center">
-              <p class="text-xs text-gray-500">OUTPUT</p>
-              <p class="text-xl font-bold text-green-600">{{ stat.output_pieces }}</p>
+              <p class="text-xs text-gray-500">OUT</p>
+              <p class="text-md font-bold text-green-600">{{ stat.output_pieces }}</p>
+              <div class="flex space-x-1 justify-center mt-1">
+                <span class="text-xs text-green-600">OK: {{ stat.accepted_count }}</span>
+                <span class="text-xs text-red-600">REJ: {{ stat.rejected_count }}</span>
+                <span class="text-xs text-yellow-600">RWK: {{ stat.rework_count }}</span>
+              </div>
             </div>
             <div class="text-center">
-              <p class="text-xs text-gray-500">IN PROGRESS</p>
-              <p class="text-xl font-bold text-yellow-600">{{ stat.shortage_liability }}</p>
+              <p class="text-xs text-gray-500">PENDING</p>
+              <p class="text-md font-bold text-yellow-600">{{ stat.shortage_liability }}</p>
             </div>
           </div>
-          
           <!-- Efficiency Bar -->
-          <div class="mb-2">
-            <div class="flex justify-between mb-1">
+          <div class="mt-2 pt-1 border-t border-gray-200">
+            <div class="flex justify-between">
               <span class="text-xs text-gray-500">Efficiency</span>
               <span class="text-xs font-semibold text-gray-700">{{ stat.efficiency|floatformat:1 }}%</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5">
-              <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ stat.efficiency }}%"></div>
+            <div class="w-full bg-gray-200 rounded-full h-1.5">
+              <div class="bg-blue-600 h-1.5 rounded-full"
+                   style="width: {{ stat.efficiency }}%"></div>
             </div>
           </div>
-          
-          <!-- Quality Control Stats -->
-          {% if stat.accepted_count or stat.rejected_count or stat.rework_count %}
-            <div class="mt-3 pt-3 border-t border-gray-200">
-              <h4 class="text-sm font-semibold mb-2">Quality Control</h4>
-              <div class="flex justify-between">
-                <div class="text-center">
-                  <p class="text-xs text-gray-500">ACCEPTED</p>
-                  <p class="text-md font-bold text-green-600">{{ stat.accepted_count }}</p>
-                </div>
-                <div class="text-center">
-                  <p class="text-xs text-gray-500">REJECTED</p>
-                  <p class="text-md font-bold text-red-600">{{ stat.rejected_count }}</p>
-                </div>
-                <div class="text-center">
-                  <p class="text-xs text-gray-500">REWORK</p>
-                  <p class="text-md font-bold text-yellow-600">{{ stat.rework_count }}</p>
-                </div>
-              </div>
-            </div>
-          {% endif %}
         </div>
       {% empty %}
-        <p>No production line statistics available.</p>
+        <p class="text-sm">No production line statistics available.</p>
       {% endfor %}
     </div>
-    
-    <!-- Chart -->
+    <!-- Charts - Side by Side -->
     {% if production_line_stats %}
-      <div class="bg-white shadow-md rounded-md p-5 mb-5">
-        <h3 class="text-md font-semibold mb-4">Production Flow Overview</h3>
-        <canvas id="productionLineChart" width="400" height="200"></canvas>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <!-- Production Flow Chart -->
+        <div class="bg-white shadow-md rounded-md p-3">
+          <h3 class="text-sm font-semibold mb-2">Production Flow Overview</h3>
+          <div style="height: 200px">
+            <canvas id="productionLineChart"></canvas>
+          </div>
+        </div>
+        <!-- QC Chart Container (will be populated by JS) -->
+        <div id="qc-chart-container" class="bg-white shadow-md rounded-md p-3">
+          <h3 class="text-sm font-semibold mb-2">Quality Control Overview</h3>
+          <div style="height: 200px">
+            <canvas id="qcChart"></canvas>
+          </div>
+        </div>
       </div>
-      
       <script>
-        var ctx = document.getElementById('productionLineChart').getContext('2d');
-        var myChart = new Chart(ctx, {
+        // Helper function to check if there are QC stats
+        function hasQCStats() {
+          return {% for stat in production_line_stats %}{{ stat.accepted_count|add:stat.rejected_count|add:stat.rework_count }} + {% endfor %}0 > 0;
+        }
+        
+        // Options for all charts
+        const chartOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                font: {
+                  size: 10
+                }
+              }
+            },
+            x: {
+              ticks: {
+                font: {
+                  size: 10
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 10,
+                padding: 5,
+                font: {
+                  size: 10
+                }
+              }
+            }
+          }
+        };
+        
+        // Production Flow Chart
+        const productionCtx = document.getElementById('productionLineChart').getContext('2d');
+        new Chart(productionCtx, {
           type: 'bar',
           data: {
             labels: [{% for stat in production_line_stats %}'{{ stat.line.name }}',{% endfor %}],
@@ -158,80 +189,49 @@
               }
             ]
           },
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                beginAtZero: true
-              }
-            }
-          }
+          options: chartOptions
         });
         
         // QC Chart
-        var qcData = {
-          labels: [{% for stat in production_line_stats %}'{{ stat.line.name }}',{% endfor %}],
-          datasets: [
-            {
-              label: 'Accepted',
-              data: [{% for stat in production_line_stats %}{{ stat.accepted_count }},{% endfor %}],
-              backgroundColor: 'rgba(16, 185, 129, 0.7)',
-              borderColor: 'rgba(16, 185, 129, 1)',
-              borderWidth: 1
-            },
-            {
-              label: 'Rejected',
-              data: [{% for stat in production_line_stats %}{{ stat.rejected_count }},{% endfor %}],
-              backgroundColor: 'rgba(239, 68, 68, 0.7)',
-              borderColor: 'rgba(239, 68, 68, 1)',
-              borderWidth: 1
-            },
-            {
-              label: 'Rework',
-              data: [{% for stat in production_line_stats %}{{ stat.rework_count }},{% endfor %}],
-              backgroundColor: 'rgba(251, 191, 36, 0.7)',
-              borderColor: 'rgba(251, 191, 36, 1)',
-              borderWidth: 1
-            }
-          ]
-        };
-        
-        // Create QC chart if there are QC stats
-        if ({% for stat in production_line_stats %}{{ stat.accepted_count|add:stat.rejected_count|add:stat.rework_count }} + {% endfor %}0 > 0) {
-          var qcCtx = document.createElement('canvas');
-          qcCtx.id = 'qcChart';
-          qcCtx.width = 400;
-          qcCtx.height = 200;
-          
-          var qcContainer = document.createElement('div');
-          qcContainer.className = 'bg-white shadow-md rounded-md p-5 mb-5';
-          
-          var qcTitle = document.createElement('h3');
-          qcTitle.className = 'text-md font-semibold mb-4';
-          qcTitle.innerText = 'Quality Control Overview';
-          
-          qcContainer.appendChild(qcTitle);
-          qcContainer.appendChild(qcCtx);
-          
-          document.querySelector('.container').appendChild(qcContainer);
-          
-          var qcChart = new Chart(qcCtx, {
+        if (hasQCStats()) {
+          const qcCtx = document.getElementById('qcChart').getContext('2d');
+          new Chart(qcCtx, {
             type: 'bar',
-            data: qcData,
-            options: {
-              responsive: true,
-              scales: {
-                y: {
-                  beginAtZero: true
+            data: {
+              labels: [{% for stat in production_line_stats %}'{{ stat.line.name }}',{% endfor %}],
+              datasets: [
+                {
+                  label: 'Accepted',
+                  data: [{% for stat in production_line_stats %}{{ stat.accepted_count }},{% endfor %}],
+                  backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                  borderColor: 'rgba(16, 185, 129, 1)',
+                  borderWidth: 1
+                },
+                {
+                  label: 'Rejected',
+                  data: [{% for stat in production_line_stats %}{{ stat.rejected_count }},{% endfor %}],
+                  backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                  borderColor: 'rgba(239, 68, 68, 1)',
+                  borderWidth: 1
+                },
+                {
+                  label: 'Rework',
+                  data: [{% for stat in production_line_stats %}{{ stat.rework_count }},{% endfor %}],
+                  backgroundColor: 'rgba(251, 191, 36, 0.7)',
+                  borderColor: 'rgba(251, 191, 36, 1)',
+                  borderWidth: 1
                 }
-              }
-            }
+              ]
+            },
+            options: chartOptions
           });
+        } else {
+          // Hide the QC chart container if there's no data
+          document.getElementById('qc-chart-container').style.display = 'none';
         }
       </script>
     {% endif %}
   </div>
-  
   <script>
     // Auto refresh dashboard every 30 seconds
     setTimeout(function(){
