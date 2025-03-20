@@ -1,3 +1,4 @@
+from tracker.models import ProductionLine, Scanner
 from seeder.factories import (
     BuyerFactory,
     SeasonFactory,
@@ -13,6 +14,8 @@ from seeder.factories import (
     ProductionBatchFactory,
     BundleFactory,
     MaterialPieceFactory,
+    ScannerFactory,
+    DefectFactory,
 )
 
 
@@ -32,8 +35,9 @@ def create_buyers():
 
 
 def create_seasons():
-    for _ in range(5):
-        SeasonFactory.create()
+    seasons = ["Summer 2023", "Fall 2023", "Winter 2023", "Spring 2024", "Summer 2024"]
+    for season in seasons:
+        SeasonFactory.create(name=season)
     print("📅 Seasons created.")
 
 
@@ -66,7 +70,9 @@ def create_colors():
 
 def create_material_types():
     material_types = [
-        "Fabric",
+        "Collar",
+        "Hood",
+        "Sleeve",
         "Lining",
         "Zipper",
         "Button",
@@ -75,9 +81,11 @@ def create_material_types():
         "Interlining",
         "Padding",
         "Buckle",
-        "Snap",
-        "Velcro",
-        "Elastic",
+        "Pocket",
+        "Cuff",
+        "Body",
+        "Back Panel",
+        "Front Panel",
     ]
     for material_type in material_types:
         MaterialTypeFactory.create(name=material_type)
@@ -161,9 +169,82 @@ def create_production_lines():
     print("🏭 Production Lines created.")
 
 
+def create_scanners():
+    # Create 2 scanners (IN and QC) for each production line
+    production_lines = ProductionLine.objects.all()
+
+    for line in production_lines:
+        # Create IN scanner
+        ScannerFactory.create(
+            name=f"{line.name} - Input",
+            production_line=line,
+            type=Scanner.ScannerType.IN,
+        )
+
+        # Create QC scanner
+        ScannerFactory.create(
+            name=f"{line.name} - QC", production_line=line, type=Scanner.ScannerType.QC
+        )
+
+    print("🔍 Scanners created.")
+
+
+def create_defects():
+    defects = [
+        # CUTTING defects
+        {"name": "Uneven Cut", "type": "CUTTING", "severity_level": 2},
+        {"name": "Wrong Size Cut", "type": "CUTTING", "severity_level": 3},
+        {"name": "Damaged Material", "type": "CUTTING", "severity_level": 3},
+        # SEWING defects
+        {"name": "Broken Stitch", "type": "SEWING", "severity_level": 2},
+        {"name": "Puckering", "type": "SEWING", "severity_level": 1},
+        {"name": "Skipped Stitch", "type": "SEWING", "severity_level": 2},
+        {"name": "Uneven Seam", "type": "SEWING", "severity_level": 1},
+        {"name": "Raw Edge Visible", "type": "SEWING", "severity_level": 2},
+        # FINISHING defects
+        {"name": "Button Missing", "type": "FINISHING", "severity_level": 1},
+        {"name": "Button Loose", "type": "FINISHING", "severity_level": 1},
+        {"name": "Wrong Button", "type": "FINISHING", "severity_level": 2},
+        {"name": "Zipper Not Working", "type": "FINISHING", "severity_level": 3},
+        # PACKING defects
+        {"name": "Wrong Label", "type": "PACKING", "severity_level": 2},
+        {"name": "Missing Tag", "type": "PACKING", "severity_level": 1},
+        # QUILTING defects
+        {"name": "Uneven Quilting", "type": "QUILTING", "severity_level": 2},
+        {"name": "Irregular Pattern", "type": "QUILTING", "severity_level": 2},
+        # DOWNFILLING defects
+        {"name": "Insufficient Fill", "type": "DOWNFILLING", "severity_level": 3},
+        {"name": "Overfilled", "type": "DOWNFILLING", "severity_level": 2},
+        {
+            "name": "Uneven Fill Distribution",
+            "type": "DOWNFILLING",
+            "severity_level": 2,
+        },
+    ]
+
+    for defect in defects:
+        DefectFactory.create(**defect)
+
+    print("❌ Defects created.")
+
+
 def create_styles(num_styles=10):
-    for _ in range(num_styles):
-        StyleFactory.create()
+    style_names = [
+        "BOCO",
+        "BERO",
+        "BODI",
+        "MEROS",
+        "TIMO",
+        "CLARA",
+        "LIAN",
+        "PARKER",
+        "JORDAN",
+        "ALEX",
+    ]
+
+    for i in range(min(num_styles, len(style_names))):
+        StyleFactory.create(name=style_names[i])
+
     print(f"👕 {num_styles} Styles created.")
 
 
@@ -211,6 +292,8 @@ def seed_tracker_data(full=False):
     create_material_types()
     create_operations()
     create_production_lines()
+    create_scanners() 
+    create_defects()
     create_styles()
 
     if full:

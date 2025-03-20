@@ -177,3 +177,21 @@ class MaterialPieceFactory(factory.django.DjangoModelFactory):
         model = tracker_models.MaterialPiece
 
     bundle = factory.SubFactory(BundleFactory)
+
+
+class ScannerFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = tracker_models.Scanner
+
+    name = factory.Sequence(lambda n: f"Scanner {n}")
+    production_line = factory.SubFactory(ProductionLineFactory)
+    type = factory.fuzzy.FuzzyChoice(tracker_models.Scanner.ScannerType.values)
+
+
+class DefectFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = tracker_models.Defect
+
+    name = factory.Sequence(lambda n: f"Defect {n}")
+    type = factory.fuzzy.FuzzyChoice(tracker_models.Operation.OperationCategory.values)
+    severity_level = factory.fuzzy.FuzzyInteger(1, 3)

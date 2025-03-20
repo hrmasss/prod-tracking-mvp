@@ -261,7 +261,7 @@ def render_qr_code(obj):
         return format_html(
             '<div style="display: flex; flex-direction: column; align-items: flex-start;">'
             '<div style="display: flex; align-items: center;">'
-            '<a href="{}" target="_blank"><img src="{}" width="100" /></a>'
+            '<a href="{}" target="_blank"><img src="{}" width="200" /></a>'
             '<div style="margin-left: 10px;">'
             '<a href="{}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" download="{}.png">Download</a>'
             '<button type="button" onclick="printQrCode(\'{}\')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Print</button>'
