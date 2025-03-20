@@ -4,17 +4,78 @@
 {% endblock header_title %}
 {% block content %}
   <div class="container mx-auto mt-10">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-      {% for scanner in scanners %}
-        <a href="{% url 'scanner_scan' scanner.pk %}"
-           class="group bg-white shadow-md rounded-md p-5 hover:bg-gray-100 transition duration-200 flex flex-col items-center justify-center">
-          <i class="ph-duotone ph-barcode text-3xl text-gray-700 mb-2 group-hover:text-blue-500 transition-colors"></i>
-          <h2 class="text-lg font-semibold mb-2 text-center">{{ scanner.name }}</h2>
-          <p class="text-gray-600 text-center">Production Line: {{ scanner.production_line|default:"N/A" }}</p>
-        </a>
-      {% empty %}
-        <p>No scanners available.</p>
-      {% endfor %}
+    <!-- Group scanners by production line -->
+    {% regroup scanners by production_line as scanner_groups %}
+    
+    {% for group in scanner_groups %}
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">
+          {% if group.grouper %}
+            <i class="ph-duotone ph-factory text-gray-600 mr-1"></i>
+            Production Line: {{ group.grouper.name }}
+          {% else %}
+            <i class="ph-duotone ph-question text-gray-600 mr-1"></i>
+            Unassigned Scanners
+          {% endif %}
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {% for scanner in group.list %}
+            <a href="{% url 'scanner_scan' scanner.pk %}"
+               class="group bg-white shadow-md rounded-md p-5 hover:bg-gray-100 transition duration-200 flex flex-col items-center justify-center border-l-4
+               {% if scanner.type == 'IN' %}border-blue-500{% elif scanner.type == 'QC' %}border-yellow-500{% elif scanner.type == 'OUT' %}border-green-500{% endif %}">
+              
+              {% if scanner.type == 'IN' %}
+                <i class="ph-duotone ph-sign-in text-3xl text-blue-600 mb-2 group-hover:text-blue-700 transition-colors"></i>
+              {% elif scanner.type == 'QC' %}
+                <i class="ph-duotone ph-check-circle text-3xl text-yellow-600 mb-2 group-hover:text-yellow-700 transition-colors"></i>
+              {% elif scanner.type == 'OUT' %}
+                <i class="ph-duotone ph-sign-out text-3xl text-green-600 mb-2 group-hover:text-green-700 transition-colors"></i>
+              {% else %}
+                <i class="ph-duotone ph-barcode text-3xl text-gray-700 mb-2 group-hover:text-blue-500 transition-colors"></i>
+              {% endif %}
+              
+              <h2 class="text-lg font-semibold mb-2 text-center">{{ scanner.name }}</h2>
+              
+              <div class="px-3 py-1 rounded-full text-xs font-medium mb-2
+                {% if scanner.type == 'IN' %}bg-blue-100 text-blue-800
+                {% elif scanner.type == 'QC' %}bg-yellow-100 text-yellow-800
+                {% elif scanner.type == 'OUT' %}bg-green-100 text-green-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {% if scanner.type == 'IN' %}
+                  Input Scanner
+                {% elif scanner.type == 'QC' %}
+                  Quality Control
+                {% elif scanner.type == 'OUT' %}
+                  Output Scanner
+                {% else %}
+                  Unknown Type
+                {% endif %}
+              </div>
+              
+              {% if scanner.production_line %}
+                <p class="text-gray-600 text-center text-sm">{{ scanner.production_line.name }}</p>
+              {% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="bg-white shadow-md rounded-md p-5 mb-5">
+        <p class="text-center text-gray-600">No scanners available.</p>
+        <p class="text-center mt-2">
+          <a href="/admin/tracker/scanner/add/" class="text-blue-500 hover:text-blue-700">
+            <i class="ph-duotone ph-plus-circle mr-1"></i> Add a scanner in the admin panel
+          </a>
+        </p>
+      </div>
+    {% endfor %}
+    
+    <!-- Link to dashboard -->
+    <div class="text-center mt-10">
+      <a href="{% url 'dashboard' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200">
+        <i class="ph-duotone ph-chart-line mr-2"></i> Go to Dashboard
+      </a>
     </div>
   </div>
 {% endblock content %}

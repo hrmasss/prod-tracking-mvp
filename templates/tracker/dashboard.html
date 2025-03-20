@@ -13,19 +13,22 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
       {% for batch in production_batches %}
         <a href="{% url 'dashboard' %}?batch_id={{ batch.id }}"
-           class="bg-white shadow-md rounded-md p-5 hover:bg-blue-50 transition duration-200 flex flex-col justify-between">
+           class="bg-white shadow-md rounded-md p-5 hover:bg-blue-50 transition duration-200 flex flex-col justify-between
+           {% if selected_batch.id == batch.id %}ring-2 ring-blue-500{% endif %}">
           <div>
-            <h3 class="text-md font-semibold mb-2">{{ batch.style }} - Batch {{ batch.batch_number }}</h3>
+            <h3 class="font-bold text-lg">{{ batch.style }}</h3>
+            <p class="text-gray-700">Batch #{{ batch.batch_number }}</p>
           </div>
           <div class="mt-2 text-sm text-gray-500">
-            <i class="ph-duotone ph-calendar-check mr-1"></i>
-            Updated: {{ batch.updated_at|date:"F d, Y" }}
+            <p>Start: {{ batch.start_date|date:"M d, Y" }}</p>
+            <p>Target: {{ batch.target_completion_date|date:"M d, Y" }}</p>
           </div>
         </a>
       {% empty %}
         <p>No active production batches.</p>
       {% endfor %}
     </div>
+    
     <!-- Dashboard Content (Conditional) -->
     {% if selected_batch %}
       <h2 class="text-lg font-semibold mb-2">
@@ -35,71 +38,128 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
         <div class="bg-white shadow-md rounded-md p-5 border-l-4 border-blue-500">
           <h2 class="text-lg font-semibold mb-2">
-            <i class="ph-duotone ph-squares-plus text-blue-500 mr-1"></i>
-            Total Material Pieces
+            <i class="ph-duotone ph-t-shirt text-gray-600 mr-1"></i>
+            Total Pieces
           </h2>
           <p class="text-3xl text-blue-700">{{ total_pieces }}</p>
         </div>
         {% for item in material_breakdown %}
-          <div class="bg-white shadow-md rounded-md p-3 border-l-4 border-gray-500">
-            <h3 class="text-md font-semibold mb-1">{{ item.material__name }}</h3>
-            <p class="text-xl text-gray-700">{{ item.count }}</p>
+          <div class="bg-white shadow-md rounded-md p-5 border-l-4 border-gray-500">
+            <h2 class="text-lg font-semibold mb-2">
+              <i class="ph-duotone ph-stack text-gray-600 mr-1"></i>
+              {{ item.bundle__material__name }}
+            </h2>
+            <p class="text-3xl text-gray-700">{{ item.count }}</p>
           </div>
         {% endfor %}
       </div>
     {% endif %}
+    
     <!-- Production Line Stats -->
     <h2 class="text-lg font-semibold mb-2">
       <i class="ph-duotone ph-line-segments text-gray-600 mr-1"></i>
       Production Line Statistics
     </h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
       {% for stat in production_line_stats %}
-        <div class="bg-white shadow-md rounded-md p-5 border-l-4 {% if stat.shortage_liability > 0 %}border-red-500{% else %}border-green-500{% endif %}">
+        <div class="bg-white shadow-md rounded-md p-5 border-l-4 {% if stat.shortage_liability > 0 %}border-yellow-500{% else %}border-green-500{% endif %}">
           <h3 class="text-md font-semibold mb-2 flex items-center">
-            <i class="ph-duotone ph-factory text-green-500 mr-1"></i>
+            <i class="ph-duotone ph-factory text-gray-600 mr-1"></i>
             {{ stat.line.name }}
           </h3>
-          <p class="text-green-700">
-            <i class="ph-duotone ph-sign-in text-gray-700 mr-1"></i>
-            Input Pieces: {{ stat.input_pieces }}
-          </p>
-          <p class="text-red-700">
-            <i class="ph-duotone ph-sign-out text-gray-700 mr-1"></i>
-            Output Pieces: {{ stat.output_pieces }}
-          </p>
-          <p class="{% if stat.shortage_liability > 0 %}text-red-700{% else %}text-green-700{% endif %}">
-            <i class="ph-duotone ph-warning text-gray-700 mr-1"></i>
-            Shortage/Liability: {{ stat.shortage_liability }}
-          </p>
+          
+          <!-- Production Counts -->
+          <div class="flex justify-between mb-3">
+            <div class="text-center">
+              <p class="text-xs text-gray-500">INPUT</p>
+              <p class="text-xl font-bold text-blue-600">{{ stat.input_pieces }}</p>
+            </div>
+            <div class="text-center">
+              <p class="text-xs text-gray-500">OUTPUT</p>
+              <p class="text-xl font-bold text-green-600">{{ stat.output_pieces }}</p>
+            </div>
+            <div class="text-center">
+              <p class="text-xs text-gray-500">IN PROGRESS</p>
+              <p class="text-xl font-bold text-yellow-600">{{ stat.shortage_liability }}</p>
+            </div>
+          </div>
+          
+          <!-- Efficiency Bar -->
+          <div class="mb-2">
+            <div class="flex justify-between mb-1">
+              <span class="text-xs text-gray-500">Efficiency</span>
+              <span class="text-xs font-semibold text-gray-700">{{ stat.efficiency|floatformat:1 }}%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+              <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ stat.efficiency }}%"></div>
+            </div>
+          </div>
+          
+          <!-- Quality Control Stats -->
+          {% if stat.accepted_count or stat.rejected_count or stat.rework_count %}
+            <div class="mt-3 pt-3 border-t border-gray-200">
+              <h4 class="text-sm font-semibold mb-2">Quality Control</h4>
+              <div class="flex justify-between">
+                <div class="text-center">
+                  <p class="text-xs text-gray-500">ACCEPTED</p>
+                  <p class="text-md font-bold text-green-600">{{ stat.accepted_count }}</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-xs text-gray-500">REJECTED</p>
+                  <p class="text-md font-bold text-red-600">{{ stat.rejected_count }}</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-xs text-gray-500">REWORK</p>
+                  <p class="text-md font-bold text-yellow-600">{{ stat.rework_count }}</p>
+                </div>
+              </div>
+            </div>
+          {% endif %}
         </div>
+      {% empty %}
+        <p>No production line statistics available.</p>
       {% endfor %}
     </div>
+    
     <!-- Chart -->
     {% if production_line_stats %}
-      <canvas id="productionLineChart" width="400" height="200"></canvas>
+      <div class="bg-white shadow-md rounded-md p-5 mb-5">
+        <h3 class="text-md font-semibold mb-4">Production Flow Overview</h3>
+        <canvas id="productionLineChart" width="400" height="200"></canvas>
+      </div>
+      
       <script>
         var ctx = document.getElementById('productionLineChart').getContext('2d');
         var myChart = new Chart(ctx, {
           type: 'bar',
           data: {
-            labels: [{% for stat in production_line_stats %}"{{ stat.line.name }}",{% endfor %}],
-            datasets: [{
-              label: 'Input Pieces',
-              data: [{% for stat in production_line_stats %}{{ stat.input_pieces }},{% endfor %}],
-              backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1
-            },
-            {
-              label: 'Output Pieces',
-              data: [{% for stat in production_line_stats %}{{ stat.output_pieces }},{% endfor %}],
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1
-            }]
+            labels: [{% for stat in production_line_stats %}'{{ stat.line.name }}',{% endfor %}],
+            datasets: [
+              {
+                label: 'Input',
+                data: [{% for stat in production_line_stats %}{{ stat.input_pieces }},{% endfor %}],
+                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+              },
+              {
+                label: 'Output',
+                data: [{% for stat in production_line_stats %}{{ stat.output_pieces }},{% endfor %}],
+                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                borderColor: 'rgba(16, 185, 129, 1)',
+                borderWidth: 1
+              },
+              {
+                label: 'In Progress',
+                data: [{% for stat in production_line_stats %}{{ stat.shortage_liability }},{% endfor %}],
+                backgroundColor: 'rgba(251, 191, 36, 0.7)',
+                borderColor: 'rgba(251, 191, 36, 1)',
+                borderWidth: 1
+              }
+            ]
           },
           options: {
+            responsive: true,
             scales: {
               y: {
                 beginAtZero: true
@@ -107,12 +167,75 @@
             }
           }
         });
+        
+        // QC Chart
+        var qcData = {
+          labels: [{% for stat in production_line_stats %}'{{ stat.line.name }}',{% endfor %}],
+          datasets: [
+            {
+              label: 'Accepted',
+              data: [{% for stat in production_line_stats %}{{ stat.accepted_count }},{% endfor %}],
+              backgroundColor: 'rgba(16, 185, 129, 0.7)',
+              borderColor: 'rgba(16, 185, 129, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Rejected',
+              data: [{% for stat in production_line_stats %}{{ stat.rejected_count }},{% endfor %}],
+              backgroundColor: 'rgba(239, 68, 68, 0.7)',
+              borderColor: 'rgba(239, 68, 68, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Rework',
+              data: [{% for stat in production_line_stats %}{{ stat.rework_count }},{% endfor %}],
+              backgroundColor: 'rgba(251, 191, 36, 0.7)',
+              borderColor: 'rgba(251, 191, 36, 1)',
+              borderWidth: 1
+            }
+          ]
+        };
+        
+        // Create QC chart if there are QC stats
+        if ({% for stat in production_line_stats %}{{ stat.accepted_count|add:stat.rejected_count|add:stat.rework_count }} + {% endfor %}0 > 0) {
+          var qcCtx = document.createElement('canvas');
+          qcCtx.id = 'qcChart';
+          qcCtx.width = 400;
+          qcCtx.height = 200;
+          
+          var qcContainer = document.createElement('div');
+          qcContainer.className = 'bg-white shadow-md rounded-md p-5 mb-5';
+          
+          var qcTitle = document.createElement('h3');
+          qcTitle.className = 'text-md font-semibold mb-4';
+          qcTitle.innerText = 'Quality Control Overview';
+          
+          qcContainer.appendChild(qcTitle);
+          qcContainer.appendChild(qcCtx);
+          
+          document.querySelector('.container').appendChild(qcContainer);
+          
+          var qcChart = new Chart(qcCtx, {
+            type: 'bar',
+            data: qcData,
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
+        }
       </script>
     {% endif %}
   </div>
+  
   <script>
+    // Auto refresh dashboard every 30 seconds
     setTimeout(function(){
       window.location.reload();
-    }, 3000);
+    }, 30000);
   </script>
 {% endblock %}

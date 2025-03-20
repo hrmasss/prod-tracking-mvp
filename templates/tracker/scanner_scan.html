@@ -4,35 +4,250 @@
 {% endblock header_title %}
 {% block content %}
   <div class="container mx-auto mt-10">
+    <div class="bg-white p-4 rounded-lg shadow mb-5">
+      <div class="text-sm mb-2">
+        <span class="font-semibold">Scanner Type:</span> 
+        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+          {% if scanner.type == 'IN' %}
+            <i class="ph-duotone ph-sign-in mr-1"></i> Input
+          {% elif scanner.type == 'QC' %}
+            <i class="ph-duotone ph-check-circle mr-1"></i> Quality Control
+          {% elif scanner.type == 'OUT' %}
+            <i class="ph-duotone ph-sign-out mr-1"></i> Output
+          {% endif %}
+        </span>
+      </div>
+      {% if scanner.production_line %}
+        <div class="text-sm">
+          <span class="font-semibold">Production Line:</span> {{ scanner.production_line.name }}
+        </div>
+      {% endif %}
+    </div>
+    
     <div class="flex justify-center">
       <div id="qr-reader" class="w-full mx-auto max-w-[500px]"></div>
     </div>
+    
     <div id="qr-reader-results" class="mt-5 text-center"></div>
+    
+    {% if scanner.type == 'QC' %}
+      <div id="quality-control-panel" class="bg-white rounded-lg shadow-md p-4 mt-5 hidden">
+        <h3 class="text-lg font-semibold mb-3">Quality Check</h3>
+        
+        <!-- Quality Status Selection -->
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2">Quality Status:</label>
+          <div class="flex space-x-2">
+            <button type="button" 
+                    onclick="setQualityStatus('ACCEPTED')" 
+                    class="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition duration-200">
+              <i class="ph-duotone ph-check-circle mr-1"></i> Accept
+            </button>
+            <button type="button" 
+                    onclick="setQualityStatus('REJECTED')" 
+                    class="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition duration-200">
+              <i class="ph-duotone ph-x-circle mr-1"></i> Reject
+            </button>
+            <button type="button" 
+                    onclick="setQualityStatus('REWORK')" 
+                    class="flex-1 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md transition duration-200">
+              <i class="ph-duotone ph-arrows-counter-clockwise mr-1"></i> Rework
+            </button>
+          </div>
+        </div>
+        
+        <!-- Defects Selection (visible when Rejected or Rework) -->
+        <div id="defects-container" class="mb-4 hidden">
+          <label class="block text-gray-700 mb-2">Select Defects:</label>
+          <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+            {% for defect in defects %}
+              <div class="flex items-center">
+                <input type="checkbox" 
+                       id="defect_{{ defect.id }}" 
+                       value="{{ defect.id }}" 
+                       class="defect-checkbox mr-2">
+                <label for="defect_{{ defect.id }}" class="text-sm">
+                  {{ defect.name }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <!-- Rework Notes (visible when Rework) -->
+        <div id="rework-container" class="mb-4 hidden">
+          <label class="block text-gray-700 mb-2">Rework Notes:</label>
+          <textarea id="rework-notes" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter rework instructions..."></textarea>
+        </div>
+        
+        <!-- Submit Button -->
+        <button id="submit-quality-check" 
+                class="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition duration-200 mt-3">
+          Submit Quality Check
+        </button>
+      </div>
+    {% endif %}
   </div>
+  
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script>
+    // Global variables
+    let currentQrData = null;
+    let qualityStatus = null;
+    
     function onScanSuccess(decodedText, decodedResult) {
       console.log(`Code scanned = ${decodedText}`, decodedResult);
-      // Handle the scanned code as you like, for example:
-      document.getElementById('qr-reader-results').innerText = decodedText;
-
-      // Send the data to your Django view
+      document.getElementById('qr-reader-results').innerText = "QR Code scanned. Processing...";
+      currentQrData = decodedText;
+      
+      {% if scanner.type == 'QC' %}
+        // For QC scanners, show the quality control panel
+        document.getElementById('quality-control-panel').classList.remove('hidden');
+      {% else %}
+        // For IN and OUT scanners, send the data immediately
+        submitScanData();
+      {% endif %}
+    }
+    
+    function setQualityStatus(status) {
+      qualityStatus = status;
+      
+      // Reset all status buttons to default style
+      document.querySelectorAll('#quality-control-panel button').forEach(btn => {
+        if (btn.innerText.includes('Accept')) {
+          btn.classList.remove('bg-green-600', 'ring-2', 'ring-green-300');
+          btn.classList.add('bg-green-500');
+        } else if (btn.innerText.includes('Reject')) {
+          btn.classList.remove('bg-red-600', 'ring-2', 'ring-red-300');
+          btn.classList.add('bg-red-500');
+        } else if (btn.innerText.includes('Rework')) {
+          btn.classList.remove('bg-yellow-600', 'ring-2', 'ring-yellow-300');
+          btn.classList.add('bg-yellow-500');
+        }
+      });
+      
+      // Highlight selected button
+      const button = document.querySelector(`button[onclick="setQualityStatus('${status}')"]`);
+      if (status === 'ACCEPTED') {
+        button.classList.remove('bg-green-500');
+        button.classList.add('bg-green-600', 'ring-2', 'ring-green-300');
+      } else if (status === 'REJECTED') {
+        button.classList.remove('bg-red-500');
+        button.classList.add('bg-red-600', 'ring-2', 'ring-red-300');
+      } else if (status === 'REWORK') {
+        button.classList.remove('bg-yellow-500');
+        button.classList.add('bg-yellow-600', 'ring-2', 'ring-yellow-300');
+      }
+      
+      // Show/hide defects section based on status
+      const defectsContainer = document.getElementById('defects-container');
+      if (status === 'REJECTED' || status === 'REWORK') {
+        defectsContainer.classList.remove('hidden');
+      } else {
+        defectsContainer.classList.add('hidden');
+      }
+      
+      // Show/hide rework notes based on status
+      const reworkContainer = document.getElementById('rework-container');
+      if (status === 'REWORK') {
+        reworkContainer.classList.remove('hidden');
+      } else {
+        reworkContainer.classList.add('hidden');
+      }
+    }
+    
+    function getSelectedDefects() {
+      const selectedDefects = [];
+      document.querySelectorAll('.defect-checkbox:checked').forEach(checkbox => {
+        selectedDefects.push(parseInt(checkbox.value));
+      });
+      return selectedDefects;
+    }
+    
+    function submitScanData() {
+      const scanData = {
+        qr_data: currentQrData,
+        scanner_name: '{{ scanner.name }}'
+      };
+      
+      {% if scanner.type == 'QC' %}
+        // Add quality check data if this is a QC scanner
+        if (!qualityStatus) {
+          alert('Please select a quality status');
+          return;
+        }
+        
+        scanData.quality_status = qualityStatus;
+        
+        if (qualityStatus === 'REJECTED' || qualityStatus === 'REWORK') {
+          scanData.defect_ids = getSelectedDefects();
+        }
+        
+        if (qualityStatus === 'REWORK') {
+          scanData.rework_notes = document.getElementById('rework-notes').value;
+          if (!scanData.rework_notes) {
+            alert('Please enter rework notes');
+            return;
+          }
+        }
+      {% endif %}
+      
+      // Send the data to the server
       fetch('/scan_data/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': '{{ csrf_token }}'
         },
-        body: JSON.stringify({ qr_data: decodedText, scanner_name: '{{ scanner.name }}' })
+        body: JSON.stringify(scanData)
       })
-      .then(response => response.text())
+      .then(response => response.json())
       .then(data => {
-        document.getElementById('qr-reader-results').innerText = data;
+        if (data.error) {
+          document.getElementById('qr-reader-results').innerHTML = `
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              <i class="ph-duotone ph-warning-circle mr-1"></i> ${data.error}
+            </div>`;
+        } else {
+          document.getElementById('qr-reader-results').innerHTML = `
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+              <i class="ph-duotone ph-check-circle mr-1"></i> ${data.message}
+            </div>`;
+          
+          // Reset the form
+          resetForm();
+        }
       })
       .catch(error => {
         console.error('Error:', error);
-        document.getElementById('qr-reader-results').innerText = 'Error scanning QR code.';
+        document.getElementById('qr-reader-results').innerHTML = `
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <i class="ph-duotone ph-warning-circle mr-1"></i> Error scanning QR code.
+          </div>`;
       });
+    }
+    
+    function resetForm() {
+      // Reset global variables
+      currentQrData = null;
+      qualityStatus = null;
+      
+      // Hide the quality control panel
+      {% if scanner.type == 'QC' %}
+        document.getElementById('quality-control-panel').classList.add('hidden');
+        document.getElementById('defects-container').classList.add('hidden');
+        document.getElementById('rework-container').classList.add('hidden');
+        
+        // Uncheck all defect checkboxes
+        document.querySelectorAll('.defect-checkbox').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        
+        // Clear rework notes
+        document.getElementById('rework-notes').value = '';
+      {% endif %}
     }
 
     function onScanFailure(error) {
@@ -43,5 +258,10 @@
       "qr-reader", { fps: 10, qrbox: 250 }
     );
     html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    
+    // Add event listener for submit button
+    {% if scanner.type == 'QC' %}
+      document.getElementById('submit-quality-check').addEventListener('click', submitScanData);
+    {% endif %}
   </script>
 {% endblock content %}

@@ -27,15 +27,31 @@
     <!-- Header -->
     <header class="bg-white shadow-md py-4">
       <div class="container mx-auto px-4">
-        <h1 class="text-2xl font-bold text-center">
-          {% block header_title %}
-            Production Tracking System
-          {% endblock header_title %}
-        </h1>
+        <div class="flex justify-between items-center">
+          <a href="/"
+             class="text-xl font-bold text-blue-600 hover:text-blue-800 transition duration-200">
+            <img src="{% static "images/humana_logo.png" %}" alt="" class="h-8">
+          </a>
+          <h1 class="text-xl font-bold text-center hidden sm:block">
+            {% block header_title %}
+              Production Tracking System
+            {% endblock header_title %}
+          </h1>
+          <div class="flex space-x-4">
+            <a href="{% url 'scan_qr' %}"
+               class="text-blue-600 hover:text-blue-800 flex items-center flex-nowrap gap-1 text-lg font-medium">
+              <i class="ph-duotone ph-barcode"></i> Scan
+            </a>
+            <a href="{% url 'dashboard' %}"
+               class="text-blue-600 hover:text-blue-800  flex items-center flex-nowrap gap-1 text-lg font-medium">
+              <i class="ph-duotone ph-chart-line"></i> <span>Dashboard</span>
+            </a>
+          </div>
+        </div>
       </div>
     </header>
-    <div class="min-h-screen">
-      <main class="container mx-auto p-2">
+    <div class="min-h-screen py-4">
+      <main class="container mx-auto px-4">
         {% block content %}
         {% endblock content %}
       </main>
