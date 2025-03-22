@@ -1,13 +1,16 @@
 asgiref==3.8.1
 certifi==2025.1.31
+cffi==1.17.1
 charset-normalizer==3.4.1
 click==8.1.8
 colorama==0.4.6
+cryptography==44.0.2
 cssbeautifier==1.15.4
 dj-database-url==2.3.0
 Django==5.1.7
 django-auditlog==3.0.0
 django-cors-headers==4.7.0
+django-extensions==3.2.3
 django-guardian==2.4.0
 django-safedelete==1.4.1
 django-simple-history==3.8.0
@@ -21,12 +24,15 @@ inflection==0.5.1
 iniconfig==2.0.0
 jsbeautifier==1.15.4
 json5==0.10.0
+MarkupSafe==3.0.2
 packaging==24.2
 pathspec==0.12.1
 pillow==11.1.0
 pillow-avif-plugin==1.5.0
 pluggy==1.5.0
 psycopg2-binary==2.9.10
+pycparser==2.22
+pyOpenSSL==25.0.0
 pytest==8.3.5
 pytest-asyncio==0.25.3
 pytest-django==4.10.0
@@ -34,6 +40,7 @@ pytest-factoryboy==2.7.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 PyYAML==6.0.2
+qrcode==8.0
 regex==2024.11.6
 requests==2.32.3
 six==1.17.0
@@ -42,3 +49,4 @@ tqdm==4.67.1
 typing_extensions==4.12.2
 tzdata==2025.1
 urllib3==2.3.0
+Werkzeug==3.1.3
