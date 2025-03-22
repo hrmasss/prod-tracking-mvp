@@ -139,18 +139,13 @@ class ProductionLineFactory(factory.django.DjangoModelFactory):
         model = tracker_models.ProductionLine
         django_get_or_create = ("name",)
 
-    name = f"{factory.fuzzy.FuzzyChoice(
-        tracker_models.Operation.OperationCategory.values
-    )} - {factory.fuzzy.FuzzyInteger(0, 10)}"
+    name = factory.LazyAttribute(
+        lambda _: f"{factory.fuzzy.FuzzyChoice(tracker_models.Operation.OperationCategory.values).fuzz()} - {factory.fuzzy.FuzzyInteger(0, 10).fuzz()}"
+    )
     operation_type = factory.fuzzy.FuzzyChoice(
         tracker_models.Operation.OperationCategory.values
     )
-    location = factory.fuzzy.FuzzyChoice(
-        [
-            "8th Floor",
-            "9th Floor",
-        ]
-    )
+    location = factory.fuzzy.FuzzyChoice(["8th Floor", "9th Floor"])
 
 
 class ProductionBatchFactory(factory.django.DjangoModelFactory):
